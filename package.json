@@ -1,0 +1,34 @@
+{
+  "name": "@distube/spotify",
+  "version": "0.0.1",
+  "description": "A DisTube custom plugin for supporting Spotify.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/distubejs/spotify.git"
+  },
+  "keywords": [
+    "distube",
+    "plugin",
+    "spotify",
+    "discord",
+    "music"
+  ],
+  "author": "Skick",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/distubejs/spotify/issues"
+  },
+  "homepage": "https://github.com/distubejs/spotify#readme",
+  "devDependencies": {
+    "discord.js": "^12.5.3",
+    "distube": "^3.0.0-beta.2"
+  },
+  "dependencies": {
+    "spotify-uri": "^2.2.0",
+    "spotify-url-info": "^2.2.0"
+  }
+}
