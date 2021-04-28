@@ -5,6 +5,11 @@
 # Feature
  This plugin grabs the songs on Spotify then searches on YouTube and play the song with DisTube.
 
+# Installation
+```sh
+npm install @distube/spotify
+```
+
 # Usage
 ```js
 const Discord = require('discord.js')
@@ -28,7 +33,7 @@ client.on('message', message => {
 })
 ```
 
-# Documentation
+## Documentation
 
-## SpotifyPlugin([options])
+### SpotifyPlugin([options])
 - `options.parallel`: Default is `true`. Whether or not searching the playlist in parallel.
