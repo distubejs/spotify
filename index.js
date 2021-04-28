@@ -25,7 +25,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
     const DT = this.distube;
     const data = await spotify.getData(url);
     if (data.type === "track") {
-      const query = `${data.name} ${data.artists.map(a => a.name).join(" ")}`;
+      const query = `${data.name} ${data.artists.map(a => a.name).join(" ")} topic`;
       const result = await DT.search(query).catch(() => undefined);
       if (!Array.isArray(result)) throw new Error(`Cannot find "${query}" on YouTube.`);
       await DT.play(message, result[0], skip);
