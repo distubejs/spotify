@@ -3,7 +3,7 @@
  Required DisTube version >= 3.0.0
 
 # Feature
- This plugin grabs the songs on Spotify then searches on YouTube and play the song with DisTube.
+ This plugin grabs the songs on Spotify then searches on YouTube and play with DisTube.
 
 # Installation
 ```sh

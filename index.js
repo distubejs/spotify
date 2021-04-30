@@ -1,7 +1,9 @@
 const spotify = require("spotify-url-info");
 const spotifyURI = require("spotify-uri");
-const { CustomPlugin, Song, Playlist } = require("distube");
+const { CustomPlugin, Song, Playlist, version } = require("distube");
 const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
+const [major, minor, patch] = version.match(/\d+/g);
+if (Number(major) < 3) throw new Error("@distube/spotify requires distube v3.0.0 or above.")
 
 module.exports = class SpotifyPlugin extends CustomPlugin {
   constructor(options = {}) {
@@ -10,7 +12,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
   }
 
   validate(url) {
-    if (typeof url !== "string") return false;
+    if (typeof url !== "string" || !url.includes("spotify")) return false;
     let parsedURL = {};
     try {
       parsedURL = spotifyURI.parse(url);
@@ -26,9 +28,9 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
     const data = await spotify.getData(url);
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map(a => a.name).join(" ")} topic`;
-      const result = await DT.search(query).catch(() => undefined);
-      if (!Array.isArray(result)) throw new Error(`Cannot find "${query}" on YouTube.`);
-      await DT.play(message, result[0], skip);
+      const result = await this.search(query);
+      if (!result) throw new Error(`Cannot find "${query}" on YouTube.`);
+      await DT.play(message, result, skip);
     } else {
       const playlist = resolvePlaylist(data, message.member);
       let firstSong;
@@ -61,6 +63,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
         queue.addToQueue(firstSong, skip);
         if (skip) queue.skip();
         await fetchTheRest();
+        DT.emit("addList", queue)
       } else {
         queue = await DT._newQueue(message, firstSong);
         if (queue === true) return;
