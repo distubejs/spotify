@@ -4,7 +4,7 @@
   "description": "A DisTube custom plugin for supporting Spotify.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -26,7 +26,8 @@
   "devDependencies": {
     "@discordjs/opus": "^0.5.0",
     "discord.js": "^12.5.3",
-    "distube": "^3.0.0-beta.6"
+    "distube": "^3.0.0-beta.7",
+    "eslint": "^7.25.0"
   },
   "dependencies": {
     "spotify-uri": "^2.2.0",

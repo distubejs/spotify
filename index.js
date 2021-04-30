@@ -2,8 +2,8 @@ const spotify = require("spotify-url-info");
 const spotifyURI = require("spotify-uri");
 const { CustomPlugin, Song, Playlist, version } = require("distube");
 const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
-const [major, minor, patch] = version.match(/\d+/g);
-if (Number(major) < 3) throw new Error("@distube/spotify requires distube v3.0.0 or above.")
+const [major] = version.match(/\d+/g);
+if (Number(major) < 3) throw new Error("@distube/spotify requires distube v3.0.0 or above.");
 
 module.exports = class SpotifyPlugin extends CustomPlugin {
   constructor(options = {}) {
@@ -23,25 +23,25 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
     return true;
   }
 
-  async play(message, url, skip) {
+  async play(voiceChannel, url, member, textChannel, skip) {
     const DT = this.distube;
     const data = await spotify.getData(url);
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map(a => a.name).join(" ")}`;
       const result = await this.search(query);
       if (!result) throw new Error(`Cannot find "${query}" on YouTube.`);
-      await DT.play(message, result, skip);
+      await DT.playVoiceChannel(voiceChannel, result, { member, textChannel, skip });
     } else {
-      const playlist = resolvePlaylist(data, message.member);
+      const playlist = resolvePlaylist(data, member);
       let firstSong;
       while (!firstSong && playlist.songs.length) {
         const result = await this.search(playlist.songs.shift());
         if (!result) continue;
-        firstSong = new Song(result, message.member)._patchPlaylist(playlist);
+        firstSong = new Song(result, member)._patchPlaylist(playlist);
       }
 
       if (!firstSong && !playlist.songs.length) throw new Error(`Cannot find any tracks of "${playlist.name}" on YouTube.`);
-      let queue = DT.getQueue(message);
+      let queue = DT.getQueue(voiceChannel);
 
       const fetchTheRest = async () => {
         if (playlist.songs.length) {
@@ -53,7 +53,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
             }
           }
           playlist.songs = playlist.songs.filter(r => r)
-            .map(r => new Song(r, message.member)._patchPlaylist(playlist));
+            .map(r => new Song(r, member)._patchPlaylist(playlist));
           queue.addToQueue(playlist.songs, skip);
         }
         playlist.songs.unshift(firstSong);
@@ -63,9 +63,9 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
         queue.addToQueue(firstSong, skip);
         if (skip) queue.skip();
         await fetchTheRest();
-        DT.emit("addList", queue)
+        if (!skip) DT.emit("addList", queue, playlist);
       } else {
-        queue = await DT._newQueue(message, firstSong);
+        queue = await DT._newQueue(voiceChannel, firstSong, textChannel);
         if (queue === true) return;
         DT.emit("playSong", queue, firstSong);
         await new Promise(resolve => {
