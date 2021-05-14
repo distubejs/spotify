@@ -89,7 +89,7 @@ const resolvePlaylist = (data, member) => new Playlist({
   name: data.name,
   thumbnail: data.images[0].url,
   url: data.external_urls?.spotify || "",
-  songs: data.tracks.items.map(item => {
+  songs: (data.tracks.items || data.tracks).map(item => {
     const track = item.track || item;
     return `${track.name} ${track.artists.map(a => a.name).join(" ")}`;
   }),
