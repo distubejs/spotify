@@ -9,6 +9,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
   constructor(options = {}) {
     super();
     this.parallel = typeof options.parallel === "boolean" ? options.parallel : true;
+    this.emitPlaySongAfterFetching = !!options.emitPlaySongAfterFetching;
   }
 
   validate(url) {
@@ -67,13 +68,14 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
       } else {
         queue = await DT._newQueue(voiceChannel, firstSong, textChannel);
         if (queue === true) return;
-        DT.emit("playSong", queue, firstSong);
+        if (!this.emitPlaySongAfterFetching) DT.emit("playSong", queue, firstSong);
         await new Promise(resolve => {
           const check = setInterval(() => {
             if (Array.isArray(queue.songs) && queue.songs[0]?.streamURL) resolve(clearInterval(check));
           }, 500);
         });
         await fetchTheRest();
+        if (this.emitPlaySongAfterFetching) DT.emit("playSong", queue, firstSong);
       }
     }
   }

@@ -37,3 +37,6 @@ client.on('message', message => {
 
 ### SpotifyPlugin([options])
 - `options.parallel`: Default is `true`. Whether or not searching the playlist in parallel.
+- `options.emitPlaySongAfterFetching`: Default is `false`. Emit `playSong` event before or after fetching all the songs.
+  > If `false`, DisTube plays the first song -> emits `playSong` events -> fetches all the rest\
+  > If `true`, DisTube plays the first song -> fetches all the rest -> emits `playSong` events
