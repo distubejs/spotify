@@ -30,7 +30,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map(a => a.name).join(" ")}`;
       const result = await this.search(query);
-      if (!result) throw new Error(`Cannot find "${query}" on YouTube.`);
+      if (!result) throw new Error(`[SpotifyPlugin] Cannot find "${query}" on YouTube.`);
       await DT.playVoiceChannel(voiceChannel, result, { member, textChannel, skip });
     } else {
       const playlist = resolvePlaylist(data, member);
@@ -41,7 +41,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
         firstSong = new Song(result, member)._patchPlaylist(playlist);
       }
 
-      if (!firstSong && !playlist.songs.length) throw new Error(`Cannot find any tracks of "${playlist.name}" on YouTube.`);
+      if (!firstSong && !playlist.songs.length) throw new Error(`[SpotifyPlugin] Cannot find any tracks of "${playlist.name}" on YouTube.`);
       let queue = DT.getQueue(voiceChannel);
 
       const fetchTheRest = async () => {
@@ -87,12 +87,17 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
   }
 };
 
-const resolvePlaylist = (data, member) => new Playlist({
-  name: data.name,
-  thumbnail: data.images[0].url,
-  url: data.external_urls?.spotify || "",
-  songs: (data.tracks.items || data.tracks).map(item => {
+const resolvePlaylist = (data, member) => {
+  const songs = (data.tracks.items || data.tracks).map(item => {
     const track = item.track || item;
+    if (track.type !== "track") return;
     return `${track.name} ${track.artists.map(a => a.name).join(" ")}`;
-  }),
-}, member);
+  }).filter(Boolean);
+  if (!songs.length) throw new Error(`[SpotifyPlugin] \`${data.name}\` does not contains any tracks.`)
+  return new Playlist({
+    name: data.name,
+    thumbnail: data.images[0].url,
+    url: data.external_urls?.spotify || "",
+    songs,
+  }, member);
+};
