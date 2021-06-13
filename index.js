@@ -24,7 +24,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
     return true;
   }
 
-  async play(voiceChannel, url, member, textChannel, skip) {
+  async play(voiceChannel, url, member, textChannel, skip, unshift) {
     const DT = this.distube;
     const data = await spotify.getData(url);
     if (data.type === "track") {
@@ -55,15 +55,15 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
           }
           playlist.songs = playlist.songs.filter(r => r)
             .map(r => new Song(r, member)._patchPlaylist(playlist));
-          queue.addToQueue(playlist.songs, skip);
+          queue.addToQueue(playlist.songs, skip ? 1 : unshift ? 2 : -1);
         }
         playlist.songs.unshift(firstSong);
       };
 
       if (queue) {
-        queue.addToQueue(firstSong, skip);
+        queue.addToQueue(firstSong, skip || unshift ? 1 : -1);
         if (skip) queue.skip();
-        await fetchTheRest();
+        await fetchTheRest(unshift);
         if (!skip) DT.emit("addList", queue, playlist);
       } else {
         queue = await DT._newQueue(voiceChannel, firstSong, textChannel);
@@ -90,7 +90,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
 const resolvePlaylist = (data, member) => {
   const songs = (data.tracks.items || data.tracks).map(item => {
     const track = item.track || item;
-    if (track.type !== "track") return;
+    if (track.type !== "track") return null;
     return `${track.name} ${track.artists.map(a => a.name).join(" ")}`;
   }).filter(Boolean);
   if (!songs.length) throw new Error(`[SpotifyPlugin] \`${data.name}\` does not contains any tracks.`)
