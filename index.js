@@ -1,9 +1,7 @@
 const spotify = require("spotify-url-info");
 const spotifyURI = require("spotify-uri");
-const { CustomPlugin, Song, Playlist, version } = require("distube");
+const { CustomPlugin, Song, Playlist } = require("distube");
 const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
-const [major] = version.match(/\d+/g);
-if (Number(major) < 3) throw new Error("@distube/spotify requires distube v3.0.0 or above.");
 
 module.exports = class SpotifyPlugin extends CustomPlugin {
   constructor(options = {}) {
