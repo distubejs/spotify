@@ -3,6 +3,7 @@
   "version": "0.3.1",
   "description": "A DisTube custom plugin for supporting Spotify.",
   "main": "index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "lint": "eslint ."
   },
