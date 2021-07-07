@@ -31,7 +31,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
       if (!result) throw new Error(`[SpotifyPlugin] Cannot find "${query}" on YouTube.`);
       await DT.playVoiceChannel(voiceChannel, result, { member, textChannel, skip });
     } else {
-      const playlist = resolvePlaylist(data, member);
+      const playlist = resolvePlaylist(data, url, member);
       let firstSong;
       while (!firstSong && playlist.songs.length) {
         const result = await this.search(playlist.songs.shift());
@@ -85,7 +85,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
   }
 };
 
-const resolvePlaylist = (data, member) => {
+const resolvePlaylist = (data, url, member) => {
   const songs = (data.tracks.items || data.tracks).map(item => {
     const track = item.track || item;
     if (track.type !== "track") return null;
@@ -95,7 +95,7 @@ const resolvePlaylist = (data, member) => {
   return new Playlist({
     name: data.name,
     thumbnail: data.images[0].url,
-    url: data.external_urls?.spotify || "",
+    url: data.external_urls?.spotify || url,
     songs,
   }, member);
 };
