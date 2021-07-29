@@ -46,7 +46,7 @@
     "spotify-url-info": "^2.2.3"
   },
   "peerDependencies": {
-    "distube": "3||^3.0.0-0"
+    "distube": "^3.0.0-beta"
   },
   "lint-staged": {
     "*.js": [
