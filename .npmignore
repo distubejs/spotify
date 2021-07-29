@@ -1,3 +1,2 @@
-.gitattributes
-.eslintrc.json
+.*
 test.js
