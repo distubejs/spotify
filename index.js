@@ -39,7 +39,9 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
         firstSong = new Song(result, member)._patchPlaylist(playlist);
       }
 
-      if (!firstSong && !playlist.songs.length) throw new Error(`[SpotifyPlugin] Cannot find any tracks of "${playlist.name}" on YouTube.`);
+      if (!firstSong && !playlist.songs.length) {
+        throw new Error(`[SpotifyPlugin] Cannot find any tracks of "${playlist.name}" on YouTube.`);
+      }
       let queue = DT.getQueue(voiceChannel);
 
       const fetchTheRest = async () => {
@@ -51,8 +53,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
               playlist.songs[i] = await this.search(playlist.songs[i]);
             }
           }
-          playlist.songs = playlist.songs.filter(r => r)
-            .map(r => new Song(r, member)._patchPlaylist(playlist));
+          playlist.songs = playlist.songs.filter(r => r).map(r => new Song(r, member)._patchPlaylist(playlist));
           queue.addToQueue(playlist.songs, skip ? 1 : unshift ? 2 : -1);
         }
         playlist.songs.unshift(firstSong);
@@ -81,21 +82,28 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
   async search(query) {
     try {
       return (await this.distube.search(query, { limit: 1 }))[0];
-    } catch { return null }
+    } catch {
+      return null;
+    }
   }
 };
 
 const resolvePlaylist = (data, member) => {
-  const songs = (data.tracks.items || data.tracks).map(item => {
-    const track = item.track || item;
-    if (track.type !== "track") return null;
-    return `${track.name} ${track.artists.map(a => a.name).join(" ")}`;
-  }).filter(Boolean);
-  if (!songs.length) throw new Error(`[SpotifyPlugin] \`${data.name}\` does not contains any tracks.`)
-  return new Playlist({
-    name: data.name,
-    thumbnail: data.images[0].url,
-    url: data.external_urls?.spotify || "",
-    songs,
-  }, member);
+  const songs = (data.tracks.items || data.tracks)
+    .map(item => {
+      const track = item.track || item;
+      if (track.type !== "track") return null;
+      return `${track.name} ${track.artists.map(a => a.name).join(" ")}`;
+    })
+    .filter(Boolean);
+  if (!songs.length) throw new Error(`[SpotifyPlugin] \`${data.name}\` does not contains any tracks.`);
+  return new Playlist(
+    {
+      name: data.name,
+      thumbnail: data.images[0].url,
+      url: data.external_urls?.spotify || "",
+      songs,
+    },
+    member,
+  );
 };
