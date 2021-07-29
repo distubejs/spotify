@@ -1,4 +1,4 @@
-name: Publish DisTube Alpha
+name: Publish @distube/spotify
 on:
   release:
     types: [created]

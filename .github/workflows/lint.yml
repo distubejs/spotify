@@ -13,8 +13,7 @@ jobs:
         with:
           node-version: 16.x
 
-      - name: npm install, build, and lint
+      - name: npm install, and lint
         run: |
           npm install
           npm run lint
-          npm run build:check
