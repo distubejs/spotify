@@ -9,6 +9,7 @@ labels: bug
 
 **Further information:**
 
+- Plugin version:
 - DisTube version:
 - discord.js version:
 - Node.js version:
