@@ -21,7 +21,7 @@ npm install @distube/spotify
 ```js
 const Discord = require("discord.js");
 const DisTube = require("distube");
-const SpotifyPlugin = require("@distube/spotify");
+const { SpotifyPlugin } = require("@distube/spotify");
 const client = new Discord.Client();
 const distube = new DisTube(client, {
   searchSongs: 10,
