@@ -65,7 +65,7 @@ module.exports = class SpotifyPlugin extends CustomPlugin {
         await fetchTheRest(unshift);
         if (!skip) DT.emit("addList", queue, playlist);
       } else {
-        queue = await DT._newQueue(voiceChannel, firstSong, textChannel);
+        queue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
         if (queue === true) return;
         if (!this.emitPlaySongAfterFetching) DT.emit("playSong", queue, firstSong);
         await new Promise(resolve => {
