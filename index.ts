@@ -13,7 +13,7 @@ declare type Options = {
     clientSecret: string;
   };
   parallel?: boolean;
-  emitPlaySongAfterFetching?: boolean;
+  emitEventsAfterFetching?: boolean;
 };
 
 const getItems = async (data: any): Promise<any[]> => {
@@ -47,11 +47,11 @@ const getItems = async (data: any): Promise<any[]> => {
 
 export class SpotifyPlugin extends CustomPlugin {
   parallel: boolean;
-  emitPlaySongAfterFetching: boolean;
+  emitEventsAfterFetching: boolean;
   constructor(options: Options = {}) {
     super();
     this.parallel = options.parallel ?? true;
-    this.emitPlaySongAfterFetching = options.emitPlaySongAfterFetching ?? false;
+    this.emitEventsAfterFetching = options.emitEventsAfterFetching ?? false;
     API.setAccessToken("");
     if (options.api) {
       if (typeof options.api.clientId !== "string") {
@@ -158,14 +158,14 @@ export class SpotifyPlugin extends CustomPlugin {
       } else {
         const newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
         if (newQueue === true) return;
-        if (!this.emitPlaySongAfterFetching) DT.emit("playSong", newQueue, firstSong);
+        if (!this.emitEventsAfterFetching) DT.emit("playSong", newQueue, firstSong);
         await new Promise(resolve => {
           const check = setInterval(() => {
             if (Array.isArray(newQueue.songs) && newQueue.songs[0]?.streamURL) resolve(clearInterval(check));
           }, 500);
         });
         await fetchTheRest(newQueue, firstSong);
-        if (this.emitPlaySongAfterFetching) DT.emit("playSong", newQueue, firstSong);
+        if (this.emitEventsAfterFetching) DT.emit("playSong", newQueue, firstSong);
       }
     }
   }

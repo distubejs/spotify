@@ -45,9 +45,9 @@ client.on("message", message => {
 ### SpotifyPlugin([options])
 
 - `options.parallel`: Default is `true`. Whether or not searching the playlist in parallel.
-- `options.emitPlaySongAfterFetching`: Default is `false`. Emit `playSong` event before or after fetching all the songs.
-  > If `false`, DisTube plays the first song -> emits `playSong` events -> fetches all the rest\
-  > If `true`, DisTube plays the first song -> fetches all the rest -> emits `playSong` events
+- `options.emitEventsAfterFetching`: Default is `false`. Emits `addList` (if `DisTubeOptions.emitAddListWhenCreatingQueue` is enabled) and `playSong` event before or after fetching all the songs.
+  > If `false`, DisTube plays the first song -> emits `addList` and `playSong` events -> fetches all the rest\
+  > If `true`, DisTube plays the first song -> fetches all the rest -> emits `addList` and `playSong` events
 - `options.api`: (Optional) Spotify API Client credentials. Uses to fetch playlists/albums more than Spotify embeds limit (100 songs).
   - `options.api.clientId`: Client ID of your Spotify application
   - `options.api.clientSecret`: Client Secret of your Spotify application
@@ -55,7 +55,7 @@ client.on("message", message => {
 ```js
 new SpotifyPlugin({
   parallel: true,
-  emitPlaySongAfterFetching: false,
+  emitEventsAfterFetching: false,
   api: {
     clientId: "SpotifyAppClientID",
     clientSecret: "SpotifyAppClientSecret",
