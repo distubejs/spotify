@@ -4,7 +4,7 @@ A DisTube custom plugin for supporting Spotify URL.
 
 ## Status: beta
 
-Requires DisTube v3.0.0-beta
+Requires DisTube v3.0.0-beta.34 or above
 
 # Feature
 
@@ -42,15 +42,15 @@ client.on("message", message => {
 
 ## Documentation
 
-### SpotifyPlugin([options])
+### SpotifyPlugin([SpotifyPluginOptions])
 
-- `options.parallel`: Default is `true`. Whether or not searching the playlist in parallel.
-- `options.emitEventsAfterFetching`: Default is `false`. Emits `addList` (if `DisTubeOptions.emitAddListWhenCreatingQueue` is enabled) and `playSong` event before or after fetching all the songs.
+- `SpotifyPluginOptions.parallel`: Default is `true`. Whether or not searching the playlist in parallel.
+- `SpotifyPluginOptions.emitEventsAfterFetching`: Default is `false`. Emits `addList` (if `DisTubeOptions.emitAddListWhenCreatingQueue` is enabled) and `playSong` event before or after fetching all the songs.
   > If `false`, DisTube plays the first song -> emits `addList` and `playSong` events -> fetches all the rest\
   > If `true`, DisTube plays the first song -> fetches all the rest -> emits `addList` and `playSong` events
-- `options.api`: (Optional) Spotify API Client credentials. Uses to fetch playlists/albums more than Spotify embeds limit (100 songs).
-  - `options.api.clientId`: Client ID of your Spotify application
-  - `options.api.clientSecret`: Client Secret of your Spotify application
+- `SpotifyPluginOptions.api`: (Optional) Spotify API Client credentials. Uses to fetch playlists/albums more than Spotify embeds limit (100 songs).
+  - `SpotifyPluginOptions.api.clientId`: Client ID of your Spotify application
+  - `SpotifyPluginOptions.api.clientSecret`: Client Secret of your Spotify application
 
 ```js
 new SpotifyPlugin({

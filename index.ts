@@ -1,13 +1,14 @@
 import spotify from "spotify-url-info";
 import spotifyURI from "spotify-uri";
 import SpotifyWebApi from "spotify-web-api-node";
-import { GuildMember, StageChannel, TextChannel, VoiceChannel } from "discord.js";
-import { CustomPlugin, DisTubeError, Playlist, PlaylistInfo, Queue, SearchResult, Song } from "distube";
+import { CustomPlugin, DisTubeError, Playlist, Song, checkInvalidKey } from "distube";
+import type { GuildMember, StageChannel, TextChannel, VoiceChannel } from "discord.js";
+import type { PlaylistInfo, Queue, SearchResult } from "distube";
 const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
 const API = new SpotifyWebApi();
 let expirationTime = 0;
 
-declare type Options = {
+declare type SpotifyPluginOptions = {
   api?: {
     clientId: string;
     clientSecret: string;
@@ -48,17 +49,35 @@ const getItems = async (data: any): Promise<any[]> => {
 export class SpotifyPlugin extends CustomPlugin {
   parallel: boolean;
   emitEventsAfterFetching: boolean;
-  constructor(options: Options = {}) {
+  constructor(options: SpotifyPluginOptions = {}) {
     super();
+    if (typeof options !== "object" || Array.isArray(options)) {
+      throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options, "SpotifyPluginOptions");
+    }
+    // TODO: change source to array of keys when distube updated
+    checkInvalidKey(
+      options,
+      { parallel: undefined, emitEventsAfterFetching: undefined, api: undefined },
+      "SpotifyPluginOptions",
+    );
     this.parallel = options.parallel ?? true;
+    if (typeof this.parallel !== "boolean") {
+      throw new DisTubeError("INVALID_TYPE", "boolean", this.parallel, "parallel");
+    }
     this.emitEventsAfterFetching = options.emitEventsAfterFetching ?? false;
+    if (typeof this.emitEventsAfterFetching !== "boolean") {
+      throw new DisTubeError("INVALID_TYPE", "boolean", this.emitEventsAfterFetching, "emitEventsAfterFetching");
+    }
     API.setAccessToken("");
+    if (options.api !== undefined && (typeof options.api !== "object" || Array.isArray(options.api))) {
+      throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options.api, "api");
+    }
     if (options.api) {
       if (typeof options.api.clientId !== "string") {
-        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientId, "clientId");
+        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientId, "api.clientId");
       }
       if (typeof options.api.clientSecret !== "string") {
-        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientSecret, "clientSecret");
+        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientSecret, "api.clientSecret");
       }
       API.setClientId(options.api.clientId);
       API.setClientSecret(options.api.clientSecret);
@@ -76,6 +95,7 @@ export class SpotifyPlugin extends CustomPlugin {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async validate(url: string) {
     if (typeof url !== "string" || !url.includes("spotify")) return false;
     try {
@@ -154,7 +174,7 @@ export class SpotifyPlugin extends CustomPlugin {
         queue.addToQueue(firstSong, skip || unshift ? 1 : -1);
         if (skip) queue.skip();
         await fetchTheRest(queue, firstSong, unshift);
-        if (!skip) DT.emit("addList", queue, playlist);
+        if (!skip || DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", queue, playlist);
       } else {
         const newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
         if (newQueue === true) return;
