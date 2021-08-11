@@ -54,12 +54,7 @@ export class SpotifyPlugin extends CustomPlugin {
     if (typeof options !== "object" || Array.isArray(options)) {
       throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options, "SpotifyPluginOptions");
     }
-    // TODO: change source to array of keys when distube updated
-    checkInvalidKey(
-      options,
-      { parallel: undefined, emitEventsAfterFetching: undefined, api: undefined },
-      "SpotifyPluginOptions",
-    );
+    checkInvalidKey(options, ["parallel", "emitEventsAfterFetching", "api"], "SpotifyPluginOptions");
     this.parallel = options.parallel ?? true;
     if (typeof this.parallel !== "boolean") {
       throw new DisTubeError("INVALID_TYPE", "boolean", this.parallel, "parallel");
@@ -71,8 +66,7 @@ export class SpotifyPlugin extends CustomPlugin {
     API.setAccessToken("");
     if (options.api !== undefined && (typeof options.api !== "object" || Array.isArray(options.api))) {
       throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options.api, "api");
-    }
-    if (options.api) {
+    } else if (options.api) {
       if (typeof options.api.clientId !== "string") {
         throw new DisTubeError("INVALID_TYPE", "string", options.api.clientId, "api.clientId");
       }
