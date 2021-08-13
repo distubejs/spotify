@@ -153,7 +153,7 @@ export class SpotifyPlugin extends CustomPlugin {
           if (this.parallel) {
             results = await Promise.all(queries.map(query => this.search(query)));
           } else {
-            for (const i in playlist.songs) {
+            for (let i = 0; i < queries.length; i++) {
               results[i] = await this.search(queries[i]);
             }
           }
