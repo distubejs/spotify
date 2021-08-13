@@ -167,19 +167,26 @@ export class SpotifyPlugin extends CustomPlugin {
       if (queue) {
         queue.addToQueue(firstSong, skip || unshift ? 1 : -1);
         if (skip) queue.skip();
+        else if (!this.emitEventsAfterFetching) DT.emit("addList", queue, playlist);
         await fetchTheRest(queue, firstSong, unshift);
-        if (!skip || DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", queue, playlist);
+        if (!skip && this.emitEventsAfterFetching) DT.emit("addList", queue, playlist);
       } else {
         const newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
         if (newQueue === true) return;
-        if (!this.emitEventsAfterFetching) DT.emit("playSong", newQueue, firstSong);
+        if (!this.emitEventsAfterFetching) {
+          if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", queue, playlist);
+          DT.emit("playSong", newQueue, firstSong);
+        }
         await new Promise(resolve => {
           const check = setInterval(() => {
             if (Array.isArray(newQueue.songs) && newQueue.songs[0]?.streamURL) resolve(clearInterval(check));
           }, 500);
         });
         await fetchTheRest(newQueue, firstSong);
-        if (this.emitEventsAfterFetching) DT.emit("playSong", newQueue, firstSong);
+        if (this.emitEventsAfterFetching) {
+          if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", newQueue, playlist);
+          DT.emit("playSong", newQueue, firstSong);
+        }
       }
     }
   }
