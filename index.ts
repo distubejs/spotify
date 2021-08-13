@@ -127,12 +127,15 @@ export class SpotifyPlugin extends CustomPlugin {
         })
         .filter((i): i is string => !!i);
       let firstSong: Song | undefined;
-      while (!firstSong) {
+      const getFirstSong = async () => {
         const firstQuery = queries.shift();
-        if (!firstQuery) break;
+        if (!firstQuery) return;
         const result = await this.search(firstQuery);
-        if (!result) continue;
+        if (!result) return;
         firstSong = new Song(result, member);
+      };
+      while (!firstSong) {
+        await getFirstSong();
       }
 
       if (!firstSong) throw new Error(`[SpotifyPlugin] Cannot find any tracks of "${name}" on YouTube.`);
@@ -171,17 +174,15 @@ export class SpotifyPlugin extends CustomPlugin {
         await fetchTheRest(queue, firstSong, unshift);
         if (!skip && this.emitEventsAfterFetching) DT.emit("addList", queue, playlist);
       } else {
-        const newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
-        if (newQueue === true) return;
+        let newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
+        while (newQueue === true) {
+          await getFirstSong();
+          newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
+        }
         if (!this.emitEventsAfterFetching) {
           if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", queue, playlist);
           DT.emit("playSong", newQueue, firstSong);
         }
-        await new Promise(resolve => {
-          const check = setInterval(() => {
-            if (Array.isArray(newQueue.songs) && newQueue.songs[0]?.streamURL) resolve(clearInterval(check));
-          }, 500);
-        });
         await fetchTheRest(newQueue, firstSong);
         if (this.emitEventsAfterFetching) {
           if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", newQueue, playlist);
