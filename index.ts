@@ -180,7 +180,7 @@ export class SpotifyPlugin extends CustomPlugin {
           newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
         }
         if (!this.emitEventsAfterFetching) {
-          if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", queue, playlist);
+          if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", newQueue, playlist);
           DT.emit("playSong", newQueue, firstSong);
         }
         await fetchTheRest(newQueue, firstSong);
