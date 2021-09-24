@@ -23,7 +23,7 @@ const getItems = async (data: any): Promise<any[]> => {
   if (!["playlist", "album"].includes(data.type)) return items;
   while (data.tracks.next) {
     if (!expirationTime) break;
-    if (expirationTime <= Date.now()) {
+    if (expirationTime <= Date.now() - 1000) {
       const res = await API.clientCredentialsGrant();
       expirationTime = Date.now() + res.body.expires_in;
       API.setAccessToken(res.body.access_token);
@@ -40,6 +40,7 @@ const getItems = async (data: any): Promise<any[]> => {
       console.warn(`[SpotifyAPI]: ${e?.message}`);
       console.warn("[SpotifyPlugin]: There is an API error, return songs as much as possible.");
       /* eslint-enable no-console */
+      break;
     }
     items.push(...data.tracks.items);
   }
@@ -118,7 +119,7 @@ export class SpotifyPlugin extends CustomPlugin {
       await DT.playVoiceChannel(voiceChannel, result, { member, textChannel, skip });
     } else {
       const name = data.name;
-      const thumbnail = data.images[0].url;
+      const thumbnail = data.images[0]?.url;
       const queries: string[] = (await getItems(data))
         .map(item => {
           const track = item.track || item;
