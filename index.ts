@@ -17,6 +17,9 @@ declare type SpotifyPluginOptions = {
   emitEventsAfterFetching?: boolean;
 };
 
+type Falsy = undefined | null | false | 0 | "";
+const isTruthy = <T>(x: T | Falsy): x is T => Boolean(x);
+
 const getItems = async (data: any): Promise<any[]> => {
   if (!data.tracks.items) return data.tracks;
   const items: any[] = data.tracks.items;
@@ -126,7 +129,7 @@ export class SpotifyPlugin extends CustomPlugin {
           if (track.type !== "track") return null;
           return `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`;
         })
-        .filter((i): i is string => !!i);
+        .filter(isTruthy);
       let firstSong: Song | undefined;
       const getFirstSong = async () => {
         const firstQuery = queries.shift();
@@ -161,9 +164,7 @@ export class SpotifyPlugin extends CustomPlugin {
               results[i] = await this.search(queries[i]);
             }
           }
-          playlist.songs = results
-            .filter((r): r is SearchResult => !!r)
-            .map(r => new Song(r, member)._patchPlaylist(playlist));
+          playlist.songs = results.filter(isTruthy).map(r => new Song(r, member)._patchPlaylist(playlist));
           q.addToQueue(playlist.songs, skip ? 1 : us ? 2 : -1);
         }
         playlist.songs.unshift(fs);
