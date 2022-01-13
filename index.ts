@@ -39,10 +39,8 @@ const getItems = async (data: any): Promise<any[]> => {
         })
       ).body;
     } catch (e: any) {
-      /* eslint-disable no-console */
-      console.warn(`[SpotifyAPI]: ${e?.message}`);
-      console.warn("[SpotifyPlugin]: There is an API error, return songs as much as possible.");
-      /* eslint-enable no-console */
+      process.emitWarning(`${e?.message}`, "SpotifyAPI");
+      process.emitWarning("There is a Spotify API error, max songs of Spotify playlist is 100.", "SpotifyPlugin");
       break;
     }
     items.push(...data.tracks.items);
@@ -108,18 +106,22 @@ export class SpotifyPlugin extends CustomPlugin {
   async play(
     voiceChannel: VoiceChannel | StageChannel,
     url: string,
-    member: GuildMember,
-    textChannel: TextChannel | undefined,
-    skip: boolean,
-    unshift: boolean,
+    options: {
+      member?: GuildMember;
+      textChannel?: TextChannel | undefined;
+      skip?: boolean;
+      unshift?: boolean;
+      metadata?: any;
+    },
   ) {
     const DT = this.distube;
     const data = await spotify.getData(url);
+    const { member, textChannel, skip, unshift, metadata } = options;
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map((a: any) => a.name).join(" ")}`;
       const result = await this.search(query);
-      if (!result) throw new Error(`[SpotifyPlugin] Cannot find "${query}" on YouTube.`);
-      await DT.playVoiceChannel(voiceChannel, result, { member, textChannel, skip });
+      if (!result) throw new DisTubeError("SPOTIFY_PLUGIN_NO_RESULT", `Cannot find "${query}" on YouTube.`);
+      await DT.play(voiceChannel, result, options);
     } else {
       const name = data.name;
       const thumbnail = data.images[0]?.url;
@@ -136,13 +138,15 @@ export class SpotifyPlugin extends CustomPlugin {
         if (!firstQuery) return;
         const result = await this.search(firstQuery);
         if (!result) return;
-        firstSong = new Song(result, member);
+        firstSong = new Song(result, { member, metadata });
       };
       while (!firstSong) {
         await getFirstSong();
       }
 
-      if (!firstSong) throw new Error(`[SpotifyPlugin] Cannot find any tracks of "${name}" on YouTube.`);
+      if (!firstSong) {
+        throw new DisTubeError("SPOTIFY_PLUGIN_NO_RESULT", `Cannot find any tracks of "${name}" on YouTube.`);
+      }
       const queue = DT.getQueue(voiceChannel);
 
       const playlistInfo: PlaylistInfo = {
@@ -153,7 +157,7 @@ export class SpotifyPlugin extends CustomPlugin {
         member,
         url,
       };
-      const playlist = new Playlist(playlistInfo);
+      const playlist = new Playlist(playlistInfo, { member, metadata });
       const fetchTheRest = async (q: Queue, fs: Song, us = false) => {
         if (queries.length) {
           let results: (SearchResult | null)[] = [];
@@ -164,7 +168,9 @@ export class SpotifyPlugin extends CustomPlugin {
               results[i] = await this.search(queries[i]);
             }
           }
-          playlist.songs = results.filter(isTruthy).map(r => new Song(r, member)._patchPlaylist(playlist));
+          playlist.songs = results
+            .filter(isTruthy)
+            .map(r => new Song(r, { member, metadata })._patchPlaylist(playlist));
           q.addToQueue(playlist.songs, skip ? 1 : us ? 2 : -1);
         }
         playlist.songs.unshift(fs);
@@ -176,10 +182,10 @@ export class SpotifyPlugin extends CustomPlugin {
         await fetchTheRest(queue, firstSong, unshift);
         if (!skip && this.emitEventsAfterFetching) DT.emit("addList", queue, playlist);
       } else {
-        let newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
+        let newQueue = await DT.queues.create(voiceChannel, firstSong, textChannel);
         while (newQueue === true) {
           await getFirstSong();
-          newQueue = await DT.handler.createQueue(voiceChannel, firstSong, textChannel);
+          newQueue = await DT.queues.create(voiceChannel, firstSong, textChannel);
         }
         if (!this.emitEventsAfterFetching) {
           if (DT.options.emitAddListWhenCreatingQueue) DT.emit("addList", newQueue, playlist);
