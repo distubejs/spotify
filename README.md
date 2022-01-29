@@ -28,23 +28,12 @@ npm install @distube/spotify@latest
 
 ```js
 const Discord = require("discord.js");
-const DisTube = require("distube");
-const { SpotifyPlugin } = require("@distube/spotify");
 const client = new Discord.Client();
+
+const { DisTube } = require("distube");
+const { SpotifyPlugin } = require("@distube/spotify");
 const distube = new DisTube(client, {
-  searchSongs: 10,
-  emitNewSongOnly: true,
   plugins: [new SpotifyPlugin()],
-});
-
-// Now distube.play can play spotify url.
-
-client.on("message", message => {
-  if (message.author.bot) return;
-  if (!message.content.startsWith(config.prefix)) return;
-  const args = message.content.slice(config.prefix.length).trim().split(/ +/g);
-  const command = args.shift();
-  if (command === "play") distube.play(message, args.join(" "));
 });
 ```
 
@@ -59,6 +48,8 @@ client.on("message", message => {
 - `SpotifyPluginOptions.api`: (Optional) Spotify API Client credentials. Uses to fetch playlists/albums more than Spotify embeds limit (100 songs).
   - `SpotifyPluginOptions.api.clientId`: Client ID of your Spotify application
   - `SpotifyPluginOptions.api.clientSecret`: Client Secret of your Spotify application
+
+#### Example
 
 ```js
 new SpotifyPlugin({
