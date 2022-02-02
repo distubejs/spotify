@@ -2,8 +2,9 @@ import spotify from "spotify-url-info";
 import spotifyURI from "spotify-uri";
 import SpotifyWebApi from "spotify-web-api-node";
 import { CustomPlugin, DisTubeError, Playlist, Song, checkInvalidKey } from "distube";
-import type { GuildMember, StageChannel, TextChannel, VoiceChannel } from "discord.js";
-import type { PlaylistInfo, Queue, SearchResult } from "distube";
+import type { VoiceBasedChannel } from "discord.js";
+import type { CustomPluginPlayOptions, PlaylistInfo, Queue, SearchResult } from "distube";
+
 const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
 const API = new SpotifyWebApi();
 let expirationTime = 0;
@@ -103,20 +104,10 @@ export class SpotifyPlugin extends CustomPlugin {
     }
   }
 
-  async play(
-    voiceChannel: VoiceChannel | StageChannel,
-    url: string,
-    options: {
-      member?: GuildMember;
-      textChannel?: TextChannel | undefined;
-      skip?: boolean;
-      unshift?: boolean;
-      metadata?: any;
-    },
-  ) {
+  async play(voiceChannel: VoiceBasedChannel, url: string, options: CustomPluginPlayOptions) {
     const DT = this.distube;
     const data = await spotify.getData(url);
-    const { member, textChannel, skip, unshift, metadata } = options;
+    const { member, textChannel, skip, position, metadata } = Object.assign({ position: 0 }, options);
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map((a: any) => a.name).join(" ")}`;
       const result = await this.search(query);
@@ -155,10 +146,10 @@ export class SpotifyPlugin extends CustomPlugin {
         name,
         thumbnail,
         member,
-        url,
+        url: data.external_urls.spotify,
       };
       const playlist = new Playlist(playlistInfo, { member, metadata });
-      const fetchTheRest = async (q: Queue, fs: Song, us = false) => {
+      const fetchTheRest = async (q: Queue, fs: Song) => {
         if (queries.length) {
           let results: (SearchResult | null)[] = [];
           if (this.parallel) {
@@ -171,15 +162,15 @@ export class SpotifyPlugin extends CustomPlugin {
           playlist.songs = results
             .filter(isTruthy)
             .map(r => new Song(r, { member, metadata })._patchPlaylist(playlist));
-          q.addToQueue(playlist.songs, skip ? 1 : us ? 2 : -1);
+          q.addToQueue(playlist.songs, !skip && position > 0 ? position + 1 : position);
         }
         playlist.songs.unshift(fs);
       };
       if (queue) {
-        queue.addToQueue(firstSong, skip || unshift ? 1 : -1);
+        queue.addToQueue(firstSong, position);
         if (skip) queue.skip();
         else if (!this.emitEventsAfterFetching) DT.emit("addList", queue, playlist);
-        await fetchTheRest(queue, firstSong, unshift);
+        await fetchTheRest(queue, firstSong);
         if (!skip && this.emitEventsAfterFetching) DT.emit("addList", queue, playlist);
       } else {
         let newQueue = await DT.queues.create(voiceChannel, firstSong, textChannel);
