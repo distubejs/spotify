@@ -159,9 +159,11 @@ export class SpotifyPlugin extends CustomPlugin {
               results[i] = await this.search(queries[i]);
             }
           }
-          playlist.songs = results
-            .filter(isTruthy)
-            .map(r => new Song(r, { member, metadata })._patchPlaylist(playlist));
+          playlist.songs = results.filter(isTruthy).map(r => {
+            const s = new Song(r, { member, metadata });
+            s.playlist = playlist;
+            return s;
+          });
           q.addToQueue(playlist.songs, !skip && position > 0 ? position + 1 : position);
         }
         playlist.songs.unshift(fs);
