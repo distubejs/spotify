@@ -1,4 +1,4 @@
-import spotifyURI from "spotify-uri";
+import { parse as parseSpotifyURI } from "spotify-uri";
 import fetch from "isomorphic-unfetch";
 import SpotifyUrlInfo from "spotify-url-info";
 import SpotifyWebApi from "spotify-web-api-node";
@@ -98,7 +98,7 @@ export class SpotifyPlugin extends CustomPlugin {
   override async validate(url: string) {
     if (typeof url !== "string" || !url.includes("spotify")) return false;
     try {
-      const parsedURL = spotifyURI.parse(url);
+      const parsedURL = parseSpotifyURI(url);
       if (!parsedURL.type || !SUPPORTED_TYPES.includes(parsedURL.type)) return false;
       return true;
     } catch (error) {
