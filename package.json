@@ -60,7 +60,7 @@
     "spotify-web-api-node": "^5.0.2"
   },
   "peerDependencies": {
-    "distube": "^3.3.1"
+    "distube": "^3.3.1||4"
   },
   "nano-staged": {
     "*.ts": [
