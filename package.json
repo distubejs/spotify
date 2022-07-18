@@ -11,8 +11,8 @@
     "build": "tsup",
     "build:check": "tsc --noEmit",
     "postinstall": "husky install",
-    "prepublishOnly": "pinst -d",
-    "postpublish": "pinst -e"
+    "prepack": "yarn build && pinst -d",
+    "postpack": "pinst -e"
   },
   "repository": {
     "type": "git",
