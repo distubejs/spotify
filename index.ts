@@ -1,12 +1,14 @@
-import spotify from "spotify-url-info";
 import spotifyURI from "spotify-uri";
+import fetch from "isomorphic-unfetch";
+import SpotifyUrlInfo from "spotify-url-info";
 import SpotifyWebApi from "spotify-web-api-node";
 import { CustomPlugin, DisTubeError, Playlist, Song, checkInvalidKey } from "distube";
 import type { VoiceBasedChannel } from "discord.js";
-import type { CustomPluginPlayOptions, PlaylistInfo, Queue, SearchResult } from "distube";
+import type { PlayOptions, PlaylistInfo, Queue, SearchResult } from "distube";
 
 const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
 const API = new SpotifyWebApi();
+const spotify = SpotifyUrlInfo(fetch);
 let expirationTime = 0;
 
 declare type SpotifyPluginOptions = {
@@ -93,7 +95,7 @@ export class SpotifyPlugin extends CustomPlugin {
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
-  async validate(url: string) {
+  override async validate(url: string) {
     if (typeof url !== "string" || !url.includes("spotify")) return false;
     try {
       const parsedURL = spotifyURI.parse(url);
@@ -104,7 +106,7 @@ export class SpotifyPlugin extends CustomPlugin {
     }
   }
 
-  async play(voiceChannel: VoiceBasedChannel, url: string, options: CustomPluginPlayOptions) {
+  async play(voiceChannel: VoiceBasedChannel, url: string, options: PlayOptions) {
     const DT = this.distube;
     const data = await spotify.getData(url);
     const { member, textChannel, skip, position, metadata } = Object.assign({ position: 0 }, options);

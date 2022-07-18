@@ -1,10 +1,10 @@
-name: Test
-
-on: [push, pull_request]
-
+name: Publish @distube/spotify
+on:
+  release:
+    types: [created]
 jobs:
-  eslint:
-    name: Linting
+  build:
+    name: Build & Publish
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -20,8 +20,7 @@ jobs:
       - name: Install dependencies
         run: yarn --immutable
 
-      - name: Linting
-        run: yarn lint
-
-      - name: Run TypeScript compiler
-        run: yarn build:check
+      - name: Publish
+        run: yarn npm publish --access public
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

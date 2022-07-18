@@ -1,3 +1,6 @@
 .*
 index.ts
 tsconfig.json
+/*.ts
+src
+tsconfig.eslint.json

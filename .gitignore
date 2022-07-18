@@ -10,3 +10,11 @@ node_modules
 package-lock.json
 test.js
 dist
+
+# yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
