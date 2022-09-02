@@ -2,8 +2,15 @@
   "name": "@distube/spotify",
   "version": "1.4.0",
   "description": "A DisTube custom plugin for supporting Spotify.",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "exports": "./dist/index.js",
+  "directories": {
+    "lib": "src"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "jest",
     "lint": "eslint .",
