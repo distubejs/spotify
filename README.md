@@ -45,7 +45,9 @@ const distube = new DisTube(client, {
 - `SpotifyPluginOptions.emitEventsAfterFetching`: Default is `false`. Emits `addList` and `playSong` event before or after fetching all the songs.
   > If `false`, DisTube plays the first song -> emits `addList` and `playSong` events -> fetches all the rest\
   > If `true`, DisTube plays the first song -> fetches all the rest -> emits `addList` and `playSong` events
-- `SpotifyPluginOptions.api`: (Optional) Spotify API Client credentials. Uses to fetch playlists/albums more than Spotify embeds limit (100 songs).
+- `SpotifyPluginOptions.api`: (Optional) Spotify API Client credentials.
+  Uses to fetch playlists/albums more than Spotify embeds limit (100 songs)
+  or fetch Spotify data from link when the plugin cannot parse the embed page.
   - `SpotifyPluginOptions.api.clientId`: Client ID of your Spotify application
   - `SpotifyPluginOptions.api.clientSecret`: Client Secret of your Spotify application
 

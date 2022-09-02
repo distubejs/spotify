@@ -29,26 +29,59 @@ const getItems = async (data: any): Promise<any[]> => {
   if (!["playlist", "album"].includes(data.type)) return items;
   while (data.tracks.next) {
     if (!expirationTime) break;
-    if (expirationTime <= Date.now() - 1000) {
-      const res = await API.clientCredentialsGrant();
-      expirationTime = Date.now() + res.body.expires_in;
+    if (expirationTime <= Date.now() - 60000) {
+      const res = await API.refreshAccessToken().catch(() => API.clientCredentialsGrant());
+      expirationTime = Date.now() + res.body.expires_in * 1000;
       API.setAccessToken(res.body.access_token);
     }
     try {
       data.tracks = (
         await API[data.type === "playlist" ? "getPlaylistTracks" : "getAlbumTracks"](data.id, {
           offset: data.tracks.offset + data.tracks.limit,
-          limit: 100,
+          limit: 50,
         })
       ).body;
     } catch (e: any) {
-      process.emitWarning(`${e?.message}`, "SpotifyAPI");
+      process.emitWarning(`${e?.body?.message}`, "SpotifyAPI");
       process.emitWarning("There is a Spotify API error, max songs of Spotify playlist is 100.", "SpotifyPlugin");
       break;
     }
     items.push(...data.tracks.items);
   }
   return items;
+};
+
+const getAPI = (method: string, ...args: any) => (<any>API)[method](...args).then((r: any) => r.body);
+
+const getDataWithAPI = async (url: string) => {
+  const parsedURL = parseSpotifyURI(url);
+  let data: any;
+  const id = (<any>parsedURL).id;
+  if (!id) throw new DisTubeError("SPOTIFY_PLUGIN_UNSUPPORTED_LINK", "This link is not supported.");
+  try {
+    switch (parsedURL.type) {
+      case "track":
+        data = await getAPI("getTrack", id);
+        break;
+      case "album":
+        data = await getAPI("getAlbum", id);
+        data.tracks = await getAPI("getAlbumTracks", id, { limit: 50 });
+        break;
+      case "artist":
+        data = await getAPI("getArtist", id);
+        data.tracks = (await getAPI("getArtistTopTracks", id, "US")).tracks;
+        break;
+      case "playlist":
+        data = await getAPI("getPlaylist", id);
+        data.tracks = await getAPI("getPlaylistTracks", id, { limit: 100 });
+        break;
+      default:
+        throw new DisTubeError("SPOTIFY_PLUGIN_UNSUPPORTED_TYPE", "This type is not supported.");
+    }
+  } catch (error: any) {
+    throw new DisTubeError("SPOTIFY_PLUGIN_API_ERROR", error?.body?.error?.message || error.message || error);
+  }
+  return data;
 };
 
 export class SpotifyPlugin extends CustomPlugin {
@@ -82,7 +115,7 @@ export class SpotifyPlugin extends CustomPlugin {
       API.setClientSecret(options.api.clientSecret);
       API.clientCredentialsGrant()
         .then(data => {
-          expirationTime = Date.now() + data.body.expires_in;
+          expirationTime = Date.now() + data.body.expires_in * 1000;
           API.setAccessToken(data.body.access_token);
         })
         .catch(e => {
@@ -108,7 +141,15 @@ export class SpotifyPlugin extends CustomPlugin {
 
   async play(voiceChannel: VoiceBasedChannel, url: string, options: PlayOptions) {
     const DT = this.distube;
-    const data = await spotify.getData(url);
+    const data = await spotify.getData(url).catch(() => {
+      if (!expirationTime) {
+        throw new DisTubeError(
+          "SPOTIFY_PLUGIN_UNKNOWN_EMBED",
+          "Couldn't parse this embed link. Please provide Spotify API credentials as a backup.",
+        );
+      }
+      return getDataWithAPI(url);
+    });
     const { member, textChannel, skip, position, metadata } = Object.assign({ position: 0 }, options);
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map((a: any) => a.name).join(" ")}`;
