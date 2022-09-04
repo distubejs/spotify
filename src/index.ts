@@ -23,17 +23,21 @@ declare type SpotifyPluginOptions = {
 type Falsy = undefined | null | false | 0 | "";
 const isTruthy = <T>(x: T | Falsy): x is T => Boolean(x);
 
+const refreshAPIToken = async () => {
+  if (expirationTime <= Date.now() - 60000) {
+    const res = await API.refreshAccessToken().catch(() => API.clientCredentialsGrant());
+    expirationTime = Date.now() + res.body.expires_in * 1000;
+    API.setAccessToken(res.body.access_token);
+  }
+};
+
 const getItems = async (data: any): Promise<any[]> => {
   if (!data.tracks.items) return data.tracks;
   const items: any[] = data.tracks.items;
   if (!["playlist", "album"].includes(data.type)) return items;
   while (data.tracks.next) {
     if (!expirationTime) break;
-    if (expirationTime <= Date.now() - 60000) {
-      const res = await API.refreshAccessToken().catch(() => API.clientCredentialsGrant());
-      expirationTime = Date.now() + res.body.expires_in * 1000;
-      API.setAccessToken(res.body.access_token);
-    }
+    await refreshAPIToken();
     try {
       data.tracks = (
         await API[data.type === "playlist" ? "getPlaylistTracks" : "getAlbumTracks"](data.id, {
@@ -58,6 +62,7 @@ const getDataWithAPI = async (url: string) => {
   let data: any;
   const id = (<any>parsedURL).id;
   if (!id) throw new DisTubeError("SPOTIFY_PLUGIN_UNSUPPORTED_LINK", "This link is not supported.");
+  await refreshAPIToken();
   try {
     switch (parsedURL.type) {
       case "track":
