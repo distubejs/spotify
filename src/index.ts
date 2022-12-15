@@ -6,7 +6,7 @@ import { CustomPlugin, DisTubeError, Playlist, Song, checkInvalidKey } from "dis
 import type { VoiceBasedChannel } from "discord.js";
 import type { PlayOptions, PlaylistInfo, Queue, SearchResult } from "distube";
 
-const SUPPORTED_TYPES = ["album", "playlist", "track"];
+const SUPPORTED_TYPES = ["album", "playlist", "track", "artist"];
 const API = new SpotifyWebApi();
 const spotify = SpotifyUrlInfo(fetch);
 let expirationTime = 0;
@@ -33,6 +33,21 @@ const refreshAPIToken = async () => {
 };
 
 const getItems = async (data: any): Promise<any[]> => {
+  if (data.trackList) {
+    data.tracks = {
+      items: data.trackList.map((track: any) => ({
+        type: "track",
+        name: track.title,
+        artists: [{ name: track.subtitle }],
+      })),
+    };
+    if (data.trackList.length > 90) {
+      data.tracks.next = true;
+      data.tracks.limit = 90;
+      data.tracks.offset = 0;
+      data.tracks.items.splice(90);
+    }
+  }
   if (!data.tracks.items) return data.tracks;
   const items: any[] = data.tracks.items;
   if (!["playlist", "album"].includes(data.type)) return items;
@@ -43,7 +58,7 @@ const getItems = async (data: any): Promise<any[]> => {
       data.tracks = (
         await API[data.type === "playlist" ? "getPlaylistTracks" : "getAlbumTracks"](data.id, {
           offset: data.tracks.offset + data.tracks.limit,
-          limit: 50,
+          limit: 100,
         })
       ).body;
     } catch (e: any) {
@@ -73,6 +88,10 @@ const getDataWithAPI = async (url: string) => {
       case "album":
         data = await getAPI("getAlbum", id);
         data.tracks = await getAPI("getAlbumTracks", id, { limit: 50 });
+        break;
+      case "artist":
+        data = await getAPI("getArtist", id);
+        data.tracks = (await getAPI("getArtistTopTracks", id, "US")).tracks;
         break;
       case "playlist":
         data = await getAPI("getPlaylist", id);
@@ -187,9 +206,7 @@ export class SpotifyPlugin extends CustomPlugin {
         if (!result) return;
         firstSong = new Song(result, { member, metadata });
       };
-      while (!firstSong) {
-        await getFirstSong();
-      }
+      while (!firstSong) await getFirstSong();
 
       if (!firstSong) {
         throw new DisTubeError("SPOTIFY_PLUGIN_NO_RESULT", `Cannot find any tracks of "${name}" on YouTube.`);
