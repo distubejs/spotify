@@ -6,7 +6,7 @@ import { CustomPlugin, DisTubeError, Playlist, Song, checkInvalidKey } from "dis
 import type { VoiceBasedChannel } from "discord.js";
 import type { PlayOptions, PlaylistInfo, Queue, SearchResult } from "distube";
 
-const SUPPORTED_TYPES = ["album", "artist", "playlist", "track"];
+const SUPPORTED_TYPES = ["album", "playlist", "track"];
 const API = new SpotifyWebApi();
 const spotify = SpotifyUrlInfo(fetch);
 let expirationTime = 0;
@@ -22,6 +22,7 @@ declare type SpotifyPluginOptions = {
 
 type Falsy = undefined | null | false | 0 | "";
 const isTruthy = <T>(x: T | Falsy): x is T => Boolean(x);
+type ClassMethods<T> = { [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never }[keyof T];
 
 const refreshAPIToken = async () => {
   if (expirationTime <= Date.now() - 60000) {
@@ -46,7 +47,7 @@ const getItems = async (data: any): Promise<any[]> => {
         })
       ).body;
     } catch (e: any) {
-      process.emitWarning(`${e?.body?.message}`, "SpotifyAPI");
+      process.emitWarning(`${e?.body?.message}`, "SpotifyApi");
       process.emitWarning("There is a Spotify API error, max songs of Spotify playlist is 100.", "SpotifyPlugin");
       break;
     }
@@ -55,7 +56,8 @@ const getItems = async (data: any): Promise<any[]> => {
   return items;
 };
 
-const getAPI = (method: string, ...args: any) => (<any>API)[method](...args).then((r: any) => r.body);
+const getAPI = <T extends ClassMethods<typeof API>>(method: T, ...args: Parameters<typeof API[T]>) =>
+  (<any>API[method])(...args).then((r: any) => r.body);
 
 const getDataWithAPI = async (url: string) => {
   const parsedURL = parseSpotifyURI(url);
@@ -71,10 +73,6 @@ const getDataWithAPI = async (url: string) => {
       case "album":
         data = await getAPI("getAlbum", id);
         data.tracks = await getAPI("getAlbumTracks", id, { limit: 50 });
-        break;
-      case "artist":
-        data = await getAPI("getArtist", id);
-        data.tracks = (await getAPI("getArtistTopTracks", id, "US")).tracks;
         break;
       case "playlist":
         data = await getAPI("getPlaylist", id);
@@ -100,21 +98,31 @@ export class SpotifyPlugin extends CustomPlugin {
     checkInvalidKey(options, ["parallel", "emitEventsAfterFetching", "api"], "SpotifyPluginOptions");
     this.parallel = options.parallel ?? true;
     if (typeof this.parallel !== "boolean") {
-      throw new DisTubeError("INVALID_TYPE", "boolean", this.parallel, "parallel");
+      throw new DisTubeError("INVALID_TYPE", "boolean", this.parallel, "SpotifyPluginOptions.parallel");
     }
     this.emitEventsAfterFetching = options.emitEventsAfterFetching ?? false;
     if (typeof this.emitEventsAfterFetching !== "boolean") {
-      throw new DisTubeError("INVALID_TYPE", "boolean", this.emitEventsAfterFetching, "emitEventsAfterFetching");
+      throw new DisTubeError(
+        "INVALID_TYPE",
+        "boolean",
+        this.emitEventsAfterFetching,
+        "SpotifyPluginOptions.emitEventsAfterFetching",
+      );
     }
     API.setAccessToken("");
     if (options.api !== undefined && (typeof options.api !== "object" || Array.isArray(options.api))) {
       throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options.api, "api");
     } else if (options.api) {
       if (typeof options.api.clientId !== "string") {
-        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientId, "api.clientId");
+        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientId, "SpotifyPluginOptions.api.clientId");
       }
       if (typeof options.api.clientSecret !== "string") {
-        throw new DisTubeError("INVALID_TYPE", "string", options.api.clientSecret, "api.clientSecret");
+        throw new DisTubeError(
+          "INVALID_TYPE",
+          "string",
+          options.api.clientSecret,
+          "SpotifyPluginOptions.api.clientSecret",
+        );
       }
       API.setClientId(options.api.clientId);
       API.setClientSecret(options.api.clientSecret);
@@ -163,7 +171,7 @@ export class SpotifyPlugin extends CustomPlugin {
       await DT.play(voiceChannel, result, options);
     } else {
       const name = data.name;
-      const thumbnail = data.images[0]?.url;
+      const thumbnail = (data.coverArt?.sources || data.images)?.[0]?.url;
       const queries: string[] = (await getItems(data))
         .map(item => {
           const track = item.track || item;
