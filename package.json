@@ -1,6 +1,6 @@
 {
   "name": "@distube/spotify",
-  "version": "1.4.4",
+  "version": "1.4.5",
   "description": "A DisTube custom plugin for supporting Spotify.",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
