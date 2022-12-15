@@ -219,7 +219,7 @@ export class SpotifyPlugin extends CustomPlugin {
         name,
         thumbnail,
         member,
-        url: data.external_urls.spotify,
+        url,
       };
       const playlist = new Playlist(playlistInfo, { member, metadata });
       const fetchTheRest = async (q: Queue, fs: Song) => {
