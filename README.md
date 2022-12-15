@@ -14,17 +14,17 @@
 
 A DisTube custom plugin for supporting Spotify URL.
 
-# Feature
+## Feature
 
 This plugin grabs the songs on Spotify then searches on YouTube and plays with DisTube.
 
-# Installation
+## Installation
 
 ```sh
 npm install @distube/spotify@latest
 ```
 
-# Usage
+## Usage
 
 ```js
 const Discord = require("discord.js");
