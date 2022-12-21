@@ -1,5 +1,7 @@
-name: Test
-on: [push, pull_request]
+name: Daily Test
+on:
+  schedule:
+    - cron: "0 0 * * *"
 jobs:
   test:
     name: Test on node v${{ matrix.node-version }} (${{ matrix.os }})
@@ -25,14 +27,5 @@ jobs:
       - name: Install dependencies
         run: yarn --immutable
 
-      - name: Linting
-        run: yarn lint
-
-      - name: Run TypeScript compiler
-        run: yarn build:check
-
       - name: Run tests
         run: yarn test
-
-      - name: Upload Coverage
-        uses: codecov/codecov-action@v3

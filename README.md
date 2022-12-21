@@ -45,11 +45,10 @@ const distube = new DisTube(client, {
 - `SpotifyPluginOptions.emitEventsAfterFetching`: Default is `false`. Emits `addList` and `playSong` event before or after fetching all the songs.
   > If `false`, DisTube plays the first song -> emits `addList` and `playSong` events -> fetches all the rest\
   > If `true`, DisTube plays the first song -> fetches all the rest -> emits `addList` and `playSong` events
-- `SpotifyPluginOptions.api`: (Optional) Spotify API Client credentials.
-  Uses to fetch playlists/albums more than Spotify embeds limit (100 songs)
-  or fetch Spotify data from link when the plugin cannot parse the embed page.
-  - `SpotifyPluginOptions.api.clientId`: Client ID of your Spotify application
-  - `SpotifyPluginOptions.api.clientSecret`: Client Secret of your Spotify application
+- `SpotifyPluginOptions.api`: (Optional) Spotify API options.
+  - `SpotifyPluginOptions.api.clientId`: Client ID of your Spotify application (Optional - Used when the plugin cannot get the credentials automatically)
+  - `SpotifyPluginOptions.api.clientSecret`: Client Secret of your Spotify application (Optional - Used when the plugin cannot get the credentials automatically)
+  - `SpotifyPluginOptions.api.topTracksCountry`: Country code of the top artist tracks (ISO 3166-1 alpha-2 country code). Default is `US`.
 
 #### Example
 
@@ -60,6 +59,7 @@ new SpotifyPlugin({
   api: {
     clientId: "SpotifyAppClientID",
     clientSecret: "SpotifyAppClientSecret",
+    topTracksCountry: "VN",
   },
 });
 ```

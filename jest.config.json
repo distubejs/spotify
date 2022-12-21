@@ -4,5 +4,6 @@
   "collectCoverageFrom": ["src/**/*.ts"],
   "coverageDirectory": "coverage",
   "coverageReporters": ["text", "lcov", "clover"],
-  "testMatch": ["**/?(*.)+(spec|test).[jt]s?(x)"]
+  "testMatch": ["**/?(*.)+(spec|test).[jt]s?(x)"],
+  "setupFiles": ["dotenv/config"]
 }
