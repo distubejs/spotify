@@ -1,4 +1,4 @@
-import { SpotifyPlugin } from "..";
+import { SpotifyPlugin } from "@";
 
 test.todo("Validate Options");
 test.todo("SpotifyPlugin#play()");

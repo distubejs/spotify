@@ -1,10 +1,10 @@
-import { API } from "../API";
+import { API } from "@/API";
 
 import * as _undici from "undici";
 jest.mock("undici");
 const undici = _undici as jest.Mocked<typeof _undici>;
 
-describe("API error handling", () => {
+describe("Error handling with mocking modules", () => {
   test("invalid region code", () => {
     expect(() => new API(undefined, undefined, "invalid-region-code")).toThrowError("Invalid region code");
     expect(() => new API(undefined, undefined, "vn")).toThrowError("Invalid region code");
@@ -48,7 +48,7 @@ describe("API error handling", () => {
 
   describe("getData", () => {
     const api = new API();
-    test("invalid uri", async () => {
+    test("invalid url", async () => {
       await expect(api.getData("invalid-url")).rejects.toThrowError("Invalid URL");
       await expect(api.getData("https://open.spotify.com/show/")).rejects.toThrowError("Invalid URL");
       await expect(api.getData("https://open.spotify.com/show/id")).rejects.toThrowError("Unsupported URL type");
