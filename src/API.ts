@@ -2,6 +2,7 @@ import SpotifyInfo from "spotify-url-info";
 import SpotifyWebApi from "spotify-web-api-node";
 import { fetch } from "undici";
 import { parse as parseSpotifyUri } from "spotify-uri";
+import { DisTubeError } from "distube";
 
 const SUPPORTED_TYPES = ["album", "playlist", "track", "artist"] as const;
 
@@ -24,16 +25,30 @@ type EmbedList = {
   };
 };
 
-type TrackList = {
-  type: "album" | "playlist" | "artist";
+type DataList = {
+  type: string;
   name: string;
   thumbnail?: string;
   url: string;
   tracks: Track[];
 };
 
+type Album = DataList & { type: "album" };
+type Playlist = DataList & { type: "playlist" };
+type Artist = DataList & { type: "artist" };
+type TrackList = Album | Playlist | Artist;
+type Data = Track | TrackList;
+
 let firstWarning1 = true;
 let firstWarning2 = true;
+
+const apiError = (e: any) =>
+  new DisTubeError(
+    "SPOTIFY_API_ERROR",
+    `The URL is private or unavailable.${e?.body?.error?.message ? `\nDetails: ${e.body.error.message}` : ""}${
+      e?.statusCode ? `\nStatus code: ${e.statusCode}.` : ""
+    }`,
+  );
 
 export class API {
   private _hasCredentials = false;
@@ -104,15 +119,27 @@ export class API {
     return parseSpotifyUri(url);
   }
 
-  async getData(url: string): Promise<Track | TrackList> {
+  getData(url: `${string}/track/${string}`): Promise<Track>;
+  getData(url: `${string}/album/${string}`): Promise<Album>;
+  getData(url: `${string}/playlist/${string}`): Promise<Playlist>;
+  getData(url: `${string}/artist/${string}`): Promise<Artist>;
+  getData(url: string): Promise<Data>;
+  async getData(url: string): Promise<Data> {
     const parsedUrl = this.parseUrl(url);
     const id = (<any>parsedUrl).id;
-    if (!id) throw new Error("Invalid URL");
-    if (!this.isSupportedTypes(parsedUrl.type)) throw new Error("Unsupported URL type");
+    if (!id) throw new DisTubeError("SPOTIFY_API_INVALID_URL", "Invalid URL");
+    if (!this.isSupportedTypes(parsedUrl.type)) {
+      throw new DisTubeError("SPOTIFY_API_UNSUPPORTED_TYPE", "Unsupported URL type");
+    }
     await this.refreshToken();
     if (parsedUrl.type === "track") {
       if (!this._tokenAvailable) return info.getData(url);
-      return api.getTrack(id).then(({ body }) => body);
+      return api
+        .getTrack(id)
+        .then(({ body }) => body)
+        .catch(e => {
+          throw apiError(e);
+        });
     }
     if (!this._tokenAvailable) {
       const data = (await info.getData(url)) as EmbedList;
@@ -129,31 +156,35 @@ export class API {
       };
     }
     let name: string, thumbnail: string, tracks: Track[];
-    switch (parsedUrl.type) {
-      case "album": {
-        const { body } = await api.getAlbum(id);
-        name = body.name;
-        thumbnail = body.images?.[0]?.url;
-        url = body.external_urls?.spotify;
-        tracks = await this.#getFullItems(body);
-        break;
+    try {
+      switch (parsedUrl.type) {
+        case "album": {
+          const { body } = await api.getAlbum(id);
+          name = body.name;
+          thumbnail = body.images?.[0]?.url;
+          url = body.external_urls?.spotify;
+          tracks = await this.#getFullItems(body);
+          break;
+        }
+        case "playlist": {
+          const { body } = await api.getPlaylist(id);
+          name = body.name;
+          thumbnail = body.images?.[0]?.url;
+          url = body.external_urls?.spotify;
+          tracks = (await this.#getFullItems(body)).map(i => i.track);
+          break;
+        }
+        case "artist": {
+          const { body } = await api.getArtist(id);
+          name = body.name;
+          thumbnail = body.images?.[0]?.url;
+          url = body.external_urls?.spotify;
+          tracks = (await api.getArtistTopTracks(id, this.topTracksCountry)).body.tracks;
+          break;
+        }
       }
-      case "playlist": {
-        const { body } = await api.getPlaylist(id);
-        name = body.name;
-        thumbnail = body.images?.[0]?.url;
-        url = body.external_urls?.spotify;
-        tracks = (await this.#getFullItems(body)).map(i => i.track);
-        break;
-      }
-      case "artist": {
-        const { body } = await api.getArtist(id);
-        name = body.name;
-        thumbnail = body.images?.[0]?.url;
-        url = body.external_urls?.spotify;
-        tracks = (await api.getArtistTopTracks(id, this.topTracksCountry)).body.tracks;
-        break;
-      }
+    } catch (e: any) {
+      throw apiError(e);
     }
     return {
       type: parsedUrl.type,
