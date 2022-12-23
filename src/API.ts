@@ -191,7 +191,7 @@ export class API {
       name,
       thumbnail,
       url,
-      tracks,
+      tracks: tracks.filter(t => t?.type === "track"),
     };
   }
 

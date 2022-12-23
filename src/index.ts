@@ -88,12 +88,7 @@ export class SpotifyPlugin extends CustomPlugin {
       await DT.play(voiceChannel, result, options);
     } else {
       const { name, thumbnail, tracks } = data;
-      const queries: string[] = tracks
-        .map(track => {
-          if (track.type !== "track") return null;
-          return `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`;
-        })
-        .filter(isTruthy);
+      const queries = tracks.map(track => `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`);
       let firstSong: Song | undefined;
       const getFirstSong = async () => {
         const firstQuery = queries.shift();
