@@ -14,18 +14,20 @@ export type SpotifyPluginOptions = {
   };
   parallel?: boolean;
   emitEventsAfterFetching?: boolean;
+  maxPlaylistTrack?: number;
 };
 
 export class SpotifyPlugin extends CustomPlugin {
   api: API;
   parallel: boolean;
   emitEventsAfterFetching: boolean;
+  maxPlaylistTrack: number;
   constructor(options: SpotifyPluginOptions = {}) {
     super();
     if (typeof options !== "object" || Array.isArray(options)) {
       throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options, "SpotifyPluginOptions");
     }
-    checkInvalidKey(options, ["parallel", "emitEventsAfterFetching", "api"], "SpotifyPluginOptions");
+    checkInvalidKey(options, ["parallel", "emitEventsAfterFetching", "api", "maxPlaylistTrack"], "SpotifyPluginOptions");
     this.parallel = options.parallel ?? true;
     if (typeof this.parallel !== "boolean") {
       throw new DisTubeError("INVALID_TYPE", "boolean", this.parallel, "SpotifyPluginOptions.parallel");
@@ -37,6 +39,31 @@ export class SpotifyPlugin extends CustomPlugin {
         "boolean",
         this.emitEventsAfterFetching,
         "SpotifyPluginOptions.emitEventsAfterFetching",
+      );
+    }
+    this.maxPlaylistTrack = options.maxPlaylistTrack ?? 200;
+    if (typeof this.maxPlaylistTrack !== "number") {
+      throw new import_distube2.DisTubeError(
+        "INVALID_TYPE",
+        "number",
+        this.maxPlaylistTrack,
+        "SpotifyPluginOptions.maxPlaylistTrack"
+      );
+    }
+    if (this.maxPlaylistTrack <= 0) {
+      throw new import_distube2.DisTubeError(
+        "NUMBER_COMPARE",
+        this.maxPlaylistTrack,
+        "more than 0",
+        "SpotifyPluginOptions.maxPlaylistTrack"
+      );
+    }
+    if (this.maxPlaylistTrack >= 10000) {
+      throw new import_distube2.DisTubeError(
+        "NUMBER_COMPARE",
+        this.maxPlaylistTrack,
+        "less than 10000",
+        "SpotifyPluginOptions.maxPlaylistTrack"
       );
     }
     if (options.api !== undefined && (typeof options.api !== "object" || Array.isArray(options.api))) {
@@ -88,7 +115,7 @@ export class SpotifyPlugin extends CustomPlugin {
       await DT.play(voiceChannel, result, options);
     } else {
       const { name, thumbnail, tracks } = data;
-      const queries = tracks.map(track => `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`);
+      const queries = tracks.slice(0, this.maxPlaylistTrack).map(track => `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`);
       let firstSong: Song | undefined;
       const getFirstSong = async () => {
         const firstQuery = queries.shift();
