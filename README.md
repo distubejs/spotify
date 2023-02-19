@@ -62,6 +62,6 @@ new SpotifyPlugin({
     clientSecret: "SpotifyAppClientSecret",
     topTracksCountry: "VN",
   },
-  maxPlaylistTrack: true,
+  maxPlaylistTrack: 150,
 });
 ```
