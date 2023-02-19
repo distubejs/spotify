@@ -49,6 +49,7 @@ const distube = new DisTube(client, {
   - `SpotifyPluginOptions.api.clientId`: Client ID of your Spotify application (Optional - Used when the plugin cannot get the credentials automatically)
   - `SpotifyPluginOptions.api.clientSecret`: Client Secret of your Spotify application (Optional - Used when the plugin cannot get the credentials automatically)
   - `SpotifyPluginOptions.api.topTracksCountry`: Country code of the top artist tracks (ISO 3166-1 alpha-2 country code). Default is `US`.
+- `SpotifyPluginOptions.maxPlaylistTrack`: Default is `200`. Determines how many songs from the playlist to be played are added to the queue at one time.
 
 #### Example
 
@@ -61,5 +62,6 @@ new SpotifyPlugin({
     clientSecret: "SpotifyAppClientSecret",
     topTracksCountry: "VN",
   },
+  maxPlaylistTrack: true,
 });
 ```
