@@ -27,7 +27,8 @@ export class SpotifyPlugin extends CustomPlugin {
     if (typeof options !== "object" || Array.isArray(options)) {
       throw new DisTubeError("INVALID_TYPE", ["object", "undefined"], options, "SpotifyPluginOptions");
     }
-    checkInvalidKey(options, ["parallel", "emitEventsAfterFetching", "api", "maxPlaylistTrack"], "SpotifyPluginOptions");
+    const keys = ["parallel", "emitEventsAfterFetching", "api", "maxPlaylistTrack"]
+    checkInvalidKey(options, keys, "SpotifyPluginOptions");
     this.parallel = options.parallel ?? true;
     if (typeof this.parallel !== "boolean") {
       throw new DisTubeError("INVALID_TYPE", "boolean", this.parallel, "SpotifyPluginOptions.parallel");
@@ -115,7 +116,9 @@ export class SpotifyPlugin extends CustomPlugin {
       await DT.play(voiceChannel, result, options);
     } else {
       const { name, thumbnail, tracks } = data;
-      const queries = tracks.slice(0, this.maxPlaylistTrack).map(track => `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`);
+      const queries = tracks
+        .slice(0, this.maxPlaylistTrack)
+        .map(track => `${track.name} ${track.artists.map((a: any) => a.name).join(" ")}`);
       let firstSong: Song | undefined;
       const getFirstSong = async () => {
         const firstQuery = queries.shift();
