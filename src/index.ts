@@ -44,7 +44,7 @@ export class SpotifyPlugin extends CustomPlugin {
     }
     this.maxPlaylistTrack = options.maxPlaylistTrack ?? 200;
     if (typeof this.maxPlaylistTrack !== "number") {
-      throw new import_distube2.DisTubeError(
+      throw new DisTubeError(
         "INVALID_TYPE",
         "number",
         this.maxPlaylistTrack,
@@ -52,7 +52,7 @@ export class SpotifyPlugin extends CustomPlugin {
       );
     }
     if (this.maxPlaylistTrack <= 0) {
-      throw new import_distube2.DisTubeError(
+      throw new DisTubeError(
         "NUMBER_COMPARE",
         this.maxPlaylistTrack,
         "more than 0",
@@ -60,7 +60,7 @@ export class SpotifyPlugin extends CustomPlugin {
       );
     }
     if (this.maxPlaylistTrack >= 10000) {
-      throw new import_distube2.DisTubeError(
+      throw new DisTubeError(
         "NUMBER_COMPARE",
         this.maxPlaylistTrack,
         "less than 10000",
