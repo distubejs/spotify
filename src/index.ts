@@ -54,16 +54,16 @@ export class SpotifyPlugin extends CustomPlugin {
     if (this.maxPlaylistTrack <= 0) {
       throw new DisTubeError(
         "INVALID_TYPE",
-        this.maxPlaylistTrack,
         "more than 0",
+        this.maxPlaylistTrack,
         "SpotifyPluginOptions.maxPlaylistTrack"
       );
     }
     if (this.maxPlaylistTrack >= 10000) {
       throw new DisTubeError(
         "INVALID_TYPE",
-        this.maxPlaylistTrack,
         "less than 10000",
+        this.maxPlaylistTrack,
         "SpotifyPluginOptions.maxPlaylistTrack"
       );
     }
