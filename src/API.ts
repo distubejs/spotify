@@ -68,7 +68,7 @@ export class API {
     }
   }
 
-  isSupportedTypes(type: string): type is typeof SUPPORTED_TYPES[number] {
+  isSupportedTypes(type: string): type is (typeof SUPPORTED_TYPES)[number] {
     return SUPPORTED_TYPES.includes(<any>type);
   }
 
@@ -182,6 +182,8 @@ export class API {
           tracks = (await api.getArtistTopTracks(id, this.topTracksCountry)).body.tracks;
           break;
         }
+        default:
+          throw new DisTubeError("SPOTIFY_API_UNSUPPORTED_TYPE", "Unsupported URL type");
       }
     } catch (e: any) {
       throw apiError(e);
