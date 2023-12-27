@@ -29,4 +29,4 @@ jobs:
           npm publish --access public
           npm deprecate @distube/spotify@"< ${{ github.event.release.tag_name }}" "This version is deprecated, please upgrade to the latest version."
         env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
