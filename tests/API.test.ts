@@ -1,4 +1,5 @@
-import { API } from "@/API";
+import { describe, expect, test } from "@jest/globals";
+import { API, apiError } from "@/API";
 
 const TRACK_URL = "https://open.spotify.com/track/6Fbsn9471Xd0vVsMWwhePh?si=f992e1fe1f714674";
 const ALBUM_URL = "https://open.spotify.com/album/5Gu0Ldddj2f6a0q5gitIok?si=781b3339b2bc4015";
@@ -86,6 +87,15 @@ describe.each([
 describe("API error handling", () => {
   const api = new API();
 
+  test("Other errors", () => {
+    expect(() => {
+      throw apiError(new Error());
+    }).toThrow("The URL is private or unavailable.");
+    expect(() => {
+      throw apiError(new Error());
+    }).not.toThrow("The URL is private or unavailable.\nDetails:");
+  });
+
   test("refreshToken", async () => {
     await api.refreshToken();
     expect(api["_tokenAvailable"]).toBe(true);
@@ -99,6 +109,6 @@ describe("API error handling", () => {
     ["playlist", `https://open.spotify.com/playlist/${PRIVATE_ID}`],
     ["artist", `https://open.spotify.com/artist/${PRIVATE_ID}`],
   ])("private %s", async (_type, url) => {
-    await expect(api.getData(url)).rejects.toThrow("The URL is private or unavailable.");
+    await expect(api.getData(url)).rejects.toThrow("The URL is private or unavailable.\nDetails:");
   });
 });

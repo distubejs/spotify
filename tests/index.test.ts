@@ -1,3 +1,4 @@
+import { describe, expect, test } from "@jest/globals";
 import { SpotifyPlugin } from "@";
 
 test.todo("Validate Options");

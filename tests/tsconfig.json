@@ -5,7 +5,7 @@
       "@": ["../src"],
       "@/*": ["../src/*"]
     },
-    "strict": false
+    "baseUrl": "."
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "../src/**/*.ts"]
 }

@@ -1,3 +1,4 @@
+import { describe, expect, jest, test } from "@jest/globals";
 import { API } from "@/API";
 
 import * as _undici from "undici";
@@ -6,8 +7,8 @@ const undici = _undici as jest.Mocked<typeof _undici>;
 
 describe("Error handling with mocking modules", () => {
   test("invalid region code", () => {
-    expect(() => new API(undefined, undefined, "invalid-region-code")).toThrowError("Invalid region code");
-    expect(() => new API(undefined, undefined, "vn")).toThrowError("Invalid region code");
+    expect(() => new API(undefined, undefined, "invalid-region-code")).toThrow("Invalid region code");
+    expect(() => new API(undefined, undefined, "vn")).toThrow("Invalid region code");
   });
 
   describe("refreshToken", () => {
@@ -15,25 +16,25 @@ describe("Error handling with mocking modules", () => {
       const api = new API("invalid-client-id", "invalid-client-secret");
       const mock = jest.spyOn(global.console, "warn").mockImplementation(() => (api["_hasCredentials"] = true));
       await expect(api.refreshToken()).resolves.toBe(undefined);
-      expect(mock).toBeCalledTimes(2);
+      expect(mock).toHaveBeenCalledTimes(2);
       await expect(api.refreshToken()).resolves.toBe(undefined);
-      expect(mock).toBeCalledTimes(2);
+      expect(mock).toHaveBeenCalledTimes(2);
       mock.mockRestore();
     });
 
     test("cannot find token", async () => {
       const api = new API();
-      const mock = jest.spyOn(global.console, "warn").mockImplementation();
+      const mock = jest.spyOn(global.console, "warn").mockImplementation(() => {});
       undici.fetch.mockResolvedValueOnce(<any>{ text: () => Promise.resolve("some text without token") });
       await expect(api.refreshToken()).resolves.toBe(undefined);
       expect(api["_tokenAvailable"]).toBe(false);
-      expect(undici.fetch).toBeCalledTimes(1);
-      expect(mock).toBeCalledTimes(1);
+      expect(undici.fetch).toHaveBeenCalledTimes(1);
+      expect(mock).toHaveBeenCalledTimes(1);
       undici.fetch.mockResolvedValueOnce(<any>{ text: () => Promise.resolve("some text without token") });
       await expect(api.refreshToken()).resolves.toBe(undefined);
       expect(api["_tokenAvailable"]).toBe(false);
-      expect(undici.fetch).toBeCalledTimes(2);
-      expect(mock).toBeCalledTimes(1);
+      expect(undici.fetch).toHaveBeenCalledTimes(2);
+      expect(mock).toHaveBeenCalledTimes(1);
       mock.mockRestore();
     });
 
@@ -49,9 +50,9 @@ describe("Error handling with mocking modules", () => {
   describe("getData", () => {
     const api = new API();
     test("invalid url", async () => {
-      await expect(api.getData("invalid-url")).rejects.toThrowError("Invalid URL");
-      await expect(api.getData("https://open.spotify.com/show/")).rejects.toThrowError("Invalid URL");
-      await expect(api.getData("https://open.spotify.com/show/id")).rejects.toThrowError("Unsupported URL type");
+      await expect(api.getData("invalid-url")).rejects.toThrow("Invalid URL");
+      await expect(api.getData("https://open.spotify.com/show/")).rejects.toThrow("Invalid URL");
+      await expect(api.getData("https://open.spotify.com/show/id")).rejects.toThrow("Unsupported URL type");
     });
   });
 });

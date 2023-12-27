@@ -2,12 +2,8 @@ name: Test
 on: [push, pull_request]
 jobs:
   test:
-    name: Test on node v${{ matrix.node-version }} (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node-version: [16, 18]
-        os: [ubuntu-latest]
+    name: Test on Node.js v20 (ubuntu-latest)
+    runs-on: ubuntu-latest
     env:
       SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
       SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
@@ -15,24 +11,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Install Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-          cache-dependency-path: yarn.lock
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
 
       - name: Install dependencies
-        run: yarn --immutable
+        run: bun install --frozen-lockfile
 
       - name: Linting
-        run: yarn lint
+        run: bun --bun run lint
 
       - name: Run TypeScript compiler
-        run: yarn build:check
+        run: bun --bun run build:check
 
       - name: Run tests
-        run: yarn test
+        run: bun run test
 
       - name: Upload Coverage
         uses: codecov/codecov-action@v3

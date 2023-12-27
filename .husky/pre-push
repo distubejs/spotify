@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-yarn --immutable
-yarn build:check
-yarn test
+bun install --frozen-lockfile
+bun --bun run build:check
+bun run test
