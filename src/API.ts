@@ -1,8 +1,8 @@
 import SpotifyInfo from "spotify-url-info";
 import SpotifyWebApi from "spotify-web-api-node";
 import { fetch } from "undici";
+import { DisTubeError, isTruthy } from "distube";
 import { parse as parseSpotifyUri } from "spotify-uri";
-import { DisTubeError } from "distube";
 
 const SUPPORTED_TYPES = ["album", "playlist", "track", "artist"] as const;
 
@@ -42,7 +42,7 @@ type Data = Track | TrackList;
 let firstWarning1 = true;
 let firstWarning2 = true;
 
-const apiError = (e: any) =>
+export const apiError = (e: any) =>
   new DisTubeError(
     "SPOTIFY_API_ERROR",
     `The URL is private or unavailable.${e?.body?.error?.message ? `\nDetails: ${e.body.error.message}` : ""}${
@@ -125,26 +125,27 @@ export class API {
   getData(url: `${string}/artist/${string}`): Promise<Artist>;
   getData(url: string): Promise<Data>;
   async getData(url: string): Promise<Data> {
-    const parsedUrl = this.parseUrl(url);
-    const id = (<any>parsedUrl).id;
+    const { type, id } = this.parseUrl(url);
+
     if (!id) throw new DisTubeError("SPOTIFY_API_INVALID_URL", "Invalid URL");
-    if (!this.isSupportedTypes(parsedUrl.type)) {
-      throw new DisTubeError("SPOTIFY_API_UNSUPPORTED_TYPE", "Unsupported URL type");
-    }
+    if (!this.isSupportedTypes(type)) throw new DisTubeError("SPOTIFY_API_UNSUPPORTED_TYPE", "Unsupported URL type");
+
     await this.refreshToken();
-    if (parsedUrl.type === "track") {
-      if (!this._tokenAvailable) return info.getData(url);
-      return api
-        .getTrack(id)
-        .then(({ body }) => body)
-        .catch(e => {
-          throw apiError(e);
-        });
+    if (type === "track") {
+      if (!this._tokenAvailable) {
+        return info.getData(url);
+      }
+      try {
+        const { body } = await api.getTrack(id);
+        return body;
+      } catch (e) {
+        throw apiError(e);
+      }
     }
     if (!this._tokenAvailable) {
       const data = (await info.getData(url)) as EmbedList;
       return {
-        type: parsedUrl.type,
+        type,
         name: data.title,
         thumbnail: data.coverArt?.sources?.[0]?.url,
         url,
@@ -155,51 +156,39 @@ export class API {
         })),
       };
     }
-    let name: string, thumbnail: string, tracks: Track[];
     try {
-      switch (parsedUrl.type) {
-        case "album": {
-          const { body } = await api.getAlbum(id);
-          name = body.name;
-          thumbnail = body.images?.[0]?.url;
-          url = body.external_urls?.spotify;
-          tracks = await this.#getFullItems(body);
-          break;
-        }
-        case "playlist": {
-          const { body } = await api.getPlaylist(id);
-          name = body.name;
-          thumbnail = body.images?.[0]?.url;
-          url = body.external_urls?.spotify;
-          tracks = (await this.#getFullItems(body)).map(i => i.track);
-          break;
-        }
-        case "artist": {
-          const { body } = await api.getArtist(id);
-          name = body.name;
-          thumbnail = body.images?.[0]?.url;
-          url = body.external_urls?.spotify;
-          tracks = (await api.getArtistTopTracks(id, this.topTracksCountry)).body.tracks;
-          break;
-        }
-        default:
-          throw new DisTubeError("SPOTIFY_API_UNSUPPORTED_TYPE", "Unsupported URL type");
-      }
-    } catch (e: any) {
+      const { body } = await api[type === "album" ? "getAlbum" : type === "playlist" ? "getPlaylist" : "getArtist"](id);
+      return {
+        type,
+        name: body.name,
+        thumbnail: body.images?.[0]?.url,
+        url: body.external_urls?.spotify,
+        tracks: (await this.#getTracks(body)).filter(t => t?.type === "track"),
+      };
+    } catch (e) {
       throw apiError(e);
     }
-    return {
-      type: parsedUrl.type,
-      name,
-      thumbnail,
-      url,
-      tracks: tracks.filter(t => t?.type === "track"),
-    };
   }
 
-  #getFullItems(data: SpotifyApi.SingleAlbumResponse): Promise<SpotifyApi.TrackObjectSimplified[]>;
-  #getFullItems(data: SpotifyApi.SinglePlaylistResponse): Promise<SpotifyApi.PlaylistTrackObject[]>;
-  async #getFullItems(data: SpotifyApi.SingleAlbumResponse | SpotifyApi.SinglePlaylistResponse) {
+  async #getTracks(
+    data: SpotifyApi.SingleAlbumResponse | SpotifyApi.SinglePlaylistResponse | SpotifyApi.SingleArtistResponse,
+  ): Promise<Track[]> {
+    switch (data.type) {
+      case "artist": {
+        return (await api.getArtistTopTracks(data.id, this.topTracksCountry)).body.tracks;
+      }
+      case "album": {
+        return await this.#getPaginatedItems(data);
+      }
+      case "playlist": {
+        return (await this.#getPaginatedItems(data)).map(i => i.track).filter(isTruthy);
+      }
+    }
+  }
+
+  #getPaginatedItems(data: SpotifyApi.SingleAlbumResponse): Promise<SpotifyApi.TrackObjectSimplified[]>;
+  #getPaginatedItems(data: SpotifyApi.SinglePlaylistResponse): Promise<SpotifyApi.PlaylistTrackObject[]>;
+  async #getPaginatedItems(data: SpotifyApi.SingleAlbumResponse | SpotifyApi.SinglePlaylistResponse) {
     const items: (SpotifyApi.TrackObjectSimplified | SpotifyApi.PlaylistTrackObject)[] = data.tracks.items;
     const isPlaylist = data.type === "playlist";
     const limit = isPlaylist ? 100 : 50;
