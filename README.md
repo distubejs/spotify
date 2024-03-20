@@ -66,3 +66,27 @@ new SpotifyPlugin({
   },
 });
 ```
+
+##### Use SoundCloudPlugin to search instead of YouTube
+
+```ts
+import { DisTube } from "distube";
+import { SpotifyPlugin } from "@distube/spotify";
+import { SoundCloudPlugin } from "@distube/soundcloud";
+
+const scPlugin = new SoundCloudPlugin();
+
+class NewSpotifyPlugin extends SpotifyPlugin {
+  override async search(query: string, metadata: any) {
+    try {
+      return new Song((await scPlugin.search(query, { limit: 1 }))[0], { metadata });
+    } catch {
+      return null;
+    }
+  }
+}
+
+const distube = new DisTube(client, {
+  plugins: [new NewSpotifyPlugin(), scPlugin],
+});
+```

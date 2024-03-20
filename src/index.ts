@@ -1,7 +1,7 @@
 import { API } from "./API";
 import { CustomPlugin, DisTubeError, Playlist, Song, checkInvalidKey } from "distube";
 import type { VoiceBasedChannel } from "discord.js";
-import type { PlayOptions, PlaylistInfo, Queue, SearchResult } from "distube";
+import type { PlayOptions, PlaylistInfo, Queue } from "distube";
 
 type Falsy = undefined | null | false | 0 | "";
 const isTruthy = <T>(x: T | Falsy): x is T => Boolean(x);
@@ -83,8 +83,9 @@ export class SpotifyPlugin extends CustomPlugin {
     const { member, textChannel, skip, position, metadata } = Object.assign({ position: 0 }, options);
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map((a: any) => a.name).join(" ")}`;
-      const result = await this.search(query);
+      const result = await this.search(query, metadata);
       if (!result) throw new DisTubeError("SPOTIFY_PLUGIN_NO_RESULT", `Cannot find "${query}" on YouTube.`);
+      result.member = member;
       await DT.play(voiceChannel, result, options);
     } else {
       const { name, thumbnail, tracks } = data;
@@ -93,9 +94,10 @@ export class SpotifyPlugin extends CustomPlugin {
       const getFirstSong = async () => {
         const firstQuery = queries.shift();
         if (!firstQuery) return;
-        const result = await this.search(firstQuery);
+        const result = await this.search(firstQuery, metadata);
         if (!result) return;
-        firstSong = new Song(result, { member, metadata });
+        result.member = member;
+        firstSong = result;
       };
       while (!firstSong) await getFirstSong();
 
@@ -115,17 +117,17 @@ export class SpotifyPlugin extends CustomPlugin {
       const playlist = new Playlist(playlistInfo, { member, metadata });
       const fetchTheRest = async (q: Queue, fs: Song) => {
         if (queries.length) {
-          let results: (SearchResult | null)[] = [];
+          let results: (Song | null)[] = [];
           if (this.parallel) {
-            results = await Promise.all(queries.map(query => this.search(query)));
+            results = await Promise.all(queries.map(query => this.search(query, metadata)));
           } else {
             for (let i = 0; i < queries.length; i++) {
-              results[i] = await this.search(queries[i]);
+              results[i] = await this.search(queries[i], metadata);
             }
           }
-          playlist.songs = results.filter(isTruthy).map(r => {
-            const s = new Song(r, { member, metadata });
+          playlist.songs = results.filter(isTruthy).map(s => {
             s.playlist = playlist;
+            s.member = member;
             return s;
           });
           q.addToQueue(playlist.songs, !skip && position > 0 ? position + 1 : position);
@@ -157,9 +159,9 @@ export class SpotifyPlugin extends CustomPlugin {
     }
   }
 
-  async search(query: string) {
+  async search(query: string, metadata: any) {
     try {
-      return (await this.distube.search(query, { limit: 1 }))[0];
+      return new Song((await this.distube.search(query, { limit: 1 }))[0], { metadata });
     } catch {
       return null;
     }

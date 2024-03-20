@@ -1,9 +1,6 @@
 import { describe, expect, test } from "@jest/globals";
 import { SpotifyPlugin } from "@";
 
-test.todo("Validate Options");
-test.todo("SpotifyPlugin#play()");
-
 describe("SpotifyPlugin#validate()", () => {
   const plugin = new SpotifyPlugin();
 

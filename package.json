@@ -1,16 +1,76 @@
 {
   "name": "@distube/spotify",
   "version": "1.5.2",
-  "description": "A DisTube custom plugin for supporting Spotify.",
+  "author": "Skick",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/distubejs/spotify.git"
+  },
   "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "dependencies": {
+    "spotify-uri": "^4.0.1",
+    "spotify-url-info": "^3.2.13",
+    "spotify-web-api-node": "^5.0.2",
+    "undici": "^6.9.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.2.0",
+    "@commitlint/config-conventional": "^19.1.0",
+    "@discordjs/voice": "^0.16.1",
+    "@jest/globals": "^29.7.0",
+    "@types/spotify-web-api-node": "^5.0.11",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "commitlint": "^19.2.0",
+    "discord.js": "^14.14.1",
+    "distube": "^4.1.1",
+    "eslint": "^8.57.0",
+    "eslint-config-distube": "^1.6.4",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-deprecation": "^2.0.0",
+    "eslint-plugin-jsdoc": "^48.2.1",
+    "husky": "^9.0.11",
+    "jest": "^29.7.0",
+    "nano-staged": "^0.8.0",
+    "pinst": "^3.0.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
+    "tsup": "^8.0.2",
+    "typescript": "^5.4.2"
+  },
   "exports": "./dist/index.js",
+  "bugs": {
+    "url": "https://github.com/distubejs/spotify/issues"
+  },
+  "description": "A DisTube custom plugin for supporting Spotify.",
   "directories": {
     "lib": "src"
   },
   "files": [
     "dist"
   ],
+  "funding": "https://github.com/skick1234/DisTube?sponsor=1",
+  "homepage": "https://github.com/distubejs/spotify#readme",
+  "keywords": [
+    "distube",
+    "plugin",
+    "spotify",
+    "discord",
+    "music"
+  ],
+  "license": "MIT",
+  "nano-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint"
+    ],
+    "*.{json,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "peerDependencies": {
+    "distube": "^3.3.1||4"
+  },
   "scripts": {
     "test": "jest",
     "lint": "eslint .",
@@ -23,66 +83,5 @@
     "prepack": "bun run build && pinst -d",
     "postpack": "pinst -e"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/distubejs/spotify.git"
-  },
-  "keywords": [
-    "distube",
-    "plugin",
-    "spotify",
-    "discord",
-    "music"
-  ],
-  "author": "Skick",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/distubejs/spotify/issues"
-  },
-  "homepage": "https://github.com/distubejs/spotify#readme",
-  "devDependencies": {
-    "@commitlint/cli": "^18.4.3",
-    "@commitlint/config-conventional": "^18.4.3",
-    "@discordjs/opus": "^0.9.0",
-    "@discordjs/voice": "^0.16.1",
-    "@jest/globals": "^29.7.0",
-    "@types/spotify-web-api-node": "^5.0.11",
-    "@typescript-eslint/eslint-plugin": "^6.16.0",
-    "@typescript-eslint/parser": "^6.16.0",
-    "commitlint": "^18.4.3",
-    "discord.js": "^14.14.1",
-    "distube": "^4.1.1",
-    "eslint": "^8.56.0",
-    "eslint-config-distube": "^1.6.4",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-deprecation": "^2.0.0",
-    "eslint-plugin-jsdoc": "^46.9.1",
-    "husky": "^8.0.3",
-    "jest": "^29.7.0",
-    "nano-staged": "^0.8.0",
-    "pinst": "^3.0.0",
-    "prettier": "^3.1.1",
-    "ts-jest": "^29.1.1",
-    "tsup": "^8.0.1",
-    "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "spotify-uri": "^4.0.1",
-    "spotify-url-info": "^3.2.10",
-    "spotify-web-api-node": "^5.0.2",
-    "undici": "^6.2.1"
-  },
-  "peerDependencies": {
-    "distube": "^3.3.1||4"
-  },
-  "nano-staged": {
-    "*.ts": [
-      "prettier --write",
-      "eslint"
-    ],
-    "*.{json,yml,yaml}": [
-      "prettier --write"
-    ]
-  },
-  "funding": "https://github.com/distubejs/ytdl-core?sponsor=1"
+  "typings": "./dist/index.d.ts"
 }
