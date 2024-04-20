@@ -77,9 +77,9 @@ import { SoundCloudPlugin } from "@distube/soundcloud";
 const scPlugin = new SoundCloudPlugin();
 
 class NewSpotifyPlugin extends SpotifyPlugin {
-  override async search(query: string, metadata: any) {
+  override async search(query: string) {
     try {
-      return new Song((await scPlugin.search(query, { limit: 1 }))[0], { metadata });
+      return new Song((await scPlugin.search(query, { limit: 1 }))[0]);
     } catch {
       return null;
     }

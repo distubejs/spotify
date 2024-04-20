@@ -1,7 +1,7 @@
 name: Publish @distube/spotify
 on:
   release:
-    types: [created]
+    types: [published]
 jobs:
   build:
     name: Build & Publish
@@ -26,7 +26,7 @@ jobs:
 
       - name: Publish
         run: |
-          npm publish --access public
+          npm publish --provenance --access public
           npm deprecate @distube/spotify@"< ${{ github.event.release.tag_name }}" "This version is deprecated, please upgrade to the latest version."
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}

@@ -83,9 +83,10 @@ export class SpotifyPlugin extends CustomPlugin {
     const { member, textChannel, skip, position, metadata } = Object.assign({ position: 0 }, options);
     if (data.type === "track") {
       const query = `${data.name} ${data.artists.map((a: any) => a.name).join(" ")}`;
-      const result = await this.search(query, metadata);
+      const result = await this.search(query);
       if (!result) throw new DisTubeError("SPOTIFY_PLUGIN_NO_RESULT", `Cannot find "${query}" on YouTube.`);
       result.member = member;
+      result.metadata = metadata;
       await DT.play(voiceChannel, result, options);
     } else {
       const { name, thumbnail, tracks } = data;
@@ -94,9 +95,10 @@ export class SpotifyPlugin extends CustomPlugin {
       const getFirstSong = async () => {
         const firstQuery = queries.shift();
         if (!firstQuery) return;
-        const result = await this.search(firstQuery, metadata);
+        const result = await this.search(firstQuery);
         if (!result) return;
         result.member = member;
+        result.metadata = metadata;
         firstSong = result;
       };
       while (!firstSong) await getFirstSong();
@@ -119,15 +121,16 @@ export class SpotifyPlugin extends CustomPlugin {
         if (queries.length) {
           let results: (Song | null)[] = [];
           if (this.parallel) {
-            results = await Promise.all(queries.map(query => this.search(query, metadata)));
+            results = await Promise.all(queries.map(query => this.search(query)));
           } else {
             for (let i = 0; i < queries.length; i++) {
-              results[i] = await this.search(queries[i], metadata);
+              results[i] = await this.search(queries[i]);
             }
           }
           playlist.songs = results.filter(isTruthy).map(s => {
             s.playlist = playlist;
             s.member = member;
+            s.metadata = metadata;
             return s;
           });
           q.addToQueue(playlist.songs, !skip && position > 0 ? position + 1 : position);
@@ -159,9 +162,9 @@ export class SpotifyPlugin extends CustomPlugin {
     }
   }
 
-  async search(query: string, metadata: any) {
+  async search(query: string) {
     try {
-      return new Song((await this.distube.search(query, { limit: 1 }))[0], { metadata });
+      return new Song((await this.distube.search(query, { limit: 1 }))[0]);
     } catch {
       return null;
     }

@@ -11,17 +11,16 @@
     "spotify-uri": "^4.0.1",
     "spotify-url-info": "^3.2.13",
     "spotify-web-api-node": "^5.0.2",
-    "undici": "^6.9.0"
+    "undici": "^6.13.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.2.1",
-    "@commitlint/config-conventional": "^19.1.0",
-    "@discordjs/voice": "^0.16.1",
+    "@commitlint/cli": "^19.2.2",
+    "@commitlint/config-conventional": "^19.2.2",
     "@jest/globals": "^29.7.0",
     "@types/spotify-web-api-node": "^5.0.11",
-    "commitlint": "^19.2.1",
+    "commitlint": "^19.2.2",
     "discord.js": "^14.14.1",
-    "distube": "^4.1.1",
+    "distube": "^4.2.0",
     "eslint": "^8.57.0",
     "eslint-config-distube": "^1.7.0",
     "husky": "^9.0.11",
@@ -31,7 +30,7 @@
     "prettier": "^3.2.5",
     "ts-jest": "^29.1.2",
     "tsup": "^8.0.2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.5"
   },
   "exports": "./dist/index.js",
   "bugs": {
@@ -67,14 +66,15 @@
     "distube": "^3.3.1||4"
   },
   "scripts": {
-    "test": "jest",
+    "jest": "jest",
+    "test": "bun --env-file=.env.test run jest",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --write \"**/*.{js,ts,json,yml,yaml,md}\"",
     "build": "tsup",
     "build:check": "tsc --noEmit",
     "update": "ncu -u && bun update",
-    "postinstall": "husky install",
+    "postinstall": "husky",
     "prepack": "bun run build && pinst -d",
     "postpack": "pinst -e"
   },
